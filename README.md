@@ -32,3 +32,10 @@ Zigbee transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/d
 
 BLE transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/511335e5-dd00-4bbd-983c-233976df4c7a)
 
+## OTA
+
+It is not recommended to use experimental versions for those who do not have the ability to reprogram the device using wired connections!
+
+For those not afraid to experiment:
+
+* The firmware is carried out from the [BLE version](https://github.com/pvvx/ATC_MiThermometer) by downloading a [*.zigbee or *.bin](https://github.com/pvvx/BZdevice/tree/master/bin) file  in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html).
