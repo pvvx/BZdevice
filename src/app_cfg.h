@@ -108,6 +108,9 @@ extern "C" {
 #endif
 
 
+#define ZB_DEFAULT_TX_POWER_IDX					RF_POWER_P3p01dBm
+#define	BLE_DEFAULT_TX_POWER_IDX				RF_POWER_P1p99dBm
+
 /**********************************************************************
  * ZCL cluster support setting
  */
@@ -130,6 +133,7 @@ extern "C" {
 #define BLE_APP_PM_ENABLE					PM_ENABLE
 #define USE_DEVICE_INFO_CHR_UUID			1
 #define USE_FLASH_SERIAL_UID				1
+#define USE_BLE_OTA							1
 
 
 // for consistency

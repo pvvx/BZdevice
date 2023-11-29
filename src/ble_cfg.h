@@ -8,27 +8,20 @@
 #ifndef SRC_BLE_CFG_H_
 #define SRC_BLE_CFG_H_
 
-#define MTU_SIZE_SETTING 						64
-
-#define ADV_IDLE_ENTER_DEEP_TIME			    5  //60 s
-#define CONN_IDLE_ENTER_DEEP_TIME			    5  //60 s
-
-#define MY_DIRECT_ADV_TMIE					2000000
-
+//#define MTU_SIZE_SETTING 						64 MTU
 
 #define MY_APP_ADV_CHANNEL					BLT_ENABLE_ADV_ALL
 #define MY_ADV_INTERVAL_MIN					8000	// 5000 ms * 1.6
 #define MY_ADV_INTERVAL_MAX					(MY_ADV_INTERVAL_MIN + 10) // + 6.25 ms
 
 /* interval: 	n*1.25 ms
- * lantency:	(n+1)*8*1.25 ms
+ * lantency:	(n+1)*interval*1.25 ms
  * timeout:     n*10 ms
  * */
 //#define DEF_CON_PAR_UPDATE			8, 8, 99, 400 // 10 ms, 10 ms, 1000 ms, 4000 ms
-#define DEF_CON_PAR_UPDATE				10, 10, 99, 400 // 12.5 ms, 12.5 ms, 1250 ms, 4500 ms
+#define DEF_CON_PAR_UPDATE				40, 40, 19, 400 // 50 ms, 50 ms, 1000 ms, 4000 ms
 
 #define	BLE_DEVICE_ADDRESS_TYPE 			BLE_DEVICE_ADDRESS_PUBLIC
-
 
 typedef enum{
 	ATT_H_START = 0,
@@ -93,5 +86,8 @@ typedef enum{
 extern u8 my_HardStr[3];
 extern u8 my_batVal;
 extern u16 batteryValueInCCC;
+#if USE_BLE_OTA
+extern u8 ota_is_working;
+#endif
 
 #endif /* SRC_BLE_CFG_H_ */

@@ -91,9 +91,9 @@ bdb_commissionSetting_t g_bdbCommissionSetting = {
  * FUNCTIONS
  */
 char int_to_hex(u8 num) {
-	char digits[] = "0123456789ABCDEF";
-	if (num > 15) return digits[0];
-	return digits[num];
+	const char * hex_ascii = {"0123456789ABCDEF"};
+	if (num > 15) return hex_ascii[0];
+	return hex_ascii[num];
 }
 
 void populate_sw_build(void) {
@@ -145,7 +145,7 @@ B1.7 | 0x3C         | 0x44   (SHT4x)  | Test   original string HW
 B1.9 | 0x3E         | 0x44   (SHT4x)  |
 B2.0 | 0x3C         | 0x44   (SHT4x)  | Test   original string HW
 */
-    if (i2c_address_lcd == B14_I2C_ADDR) {
+    if (i2c_address_lcd == B14_I2C_ADDR << 1) {
         if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) // sensor_version == 0)
             g_zcl_basicAttrs.hwVersion = 14;
         else

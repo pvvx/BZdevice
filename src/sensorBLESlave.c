@@ -59,8 +59,10 @@ u8  mac_public[6];
 
 tbl_scanRsp_t tbl_scanRsp;
 
+#if !USE_BLE_OTA
 /* local function */
 static int app_bleOtaRead(void *p);
+#endif
 static int app_bleOtaWrite(void *p);
 
 /* various */
@@ -129,10 +131,10 @@ static const u8 my_ManCharVal[5] = {
 	U16_LO(CHARACTERISTIC_UUID_MANUFACTURER_NAME), U16_HI(CHARACTERISTIC_UUID_MANUFACTURER_NAME)
 };
 static const u8 my_FirmStr[] = {"github.com/pvvx"};
-static const u8 my_SoftStr[] = {'V','0'+(APP_RELEASE>>4),'.','0'+(APP_RELEASE&0x0f),'0'+(APP_BUILD>>4),'.','0'+(APP_BUILD&0x0f)}; // "0.1.1.2"
+static const u8 my_SoftStr[] = {'Z','0'+(APP_RELEASE>>4),'.','0'+(APP_RELEASE&0x0f),'.','0'+(APP_BUILD>>4),'.','0'+(APP_BUILD&0x0f)}; // "0.1.1.2"
 u8 my_HardStr[3];
 #if USE_FLASH_SERIAL_UID
-u8 my_SerialStr[21]; // "556202-C86013-0123456"
+u8 my_SerialStr[20]; // "556202-C86013-012345"
 #else
 static const u8 my_SerialStr[] = {"0001"};
 #endif
@@ -204,7 +206,7 @@ const u8 my_OtaUUID[16]		= TELINK_SPP_DATA_OTA;
 const u8 my_OtaServiceUUID[16]		= TELINK_OTA_UUID_SERVICE;
 const u16 userdesc_UUID		= GATT_UUID_CHAR_USER_DESC;
 const u8  my_OtaName[]      = {'O', 'T', 'A'};
-u8	my_OtaData        = 0x00;
+u8	my_OtaData;
 
 
 // TM : to modify
@@ -264,7 +266,11 @@ const attribute_t my_Attributes[] = {
 	// 001D - 0021
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
 		{0,ATT_PERMISSIONS_READ, 2, 1,(u8*)(&my_characterUUID), 		(u8*)(&PROP_READ_WRITE_NORSP), 0},				//prop
+#if USE_BLE_OTA
+		{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(u8 *)(&my_OtaData), &app_bleOtaWrite, &otaRead},
+#else
 		{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(u8 *)(&my_OtaData), &app_bleOtaWrite, &app_bleOtaRead},
+#endif
 		{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
 
 };
@@ -290,22 +296,15 @@ _attribute_data_retention_	my_fifo_t	blt_txfifo = {
 
 _attribute_data_retention_	own_addr_type_t 	app_own_address_type = OWN_ADDRESS_PUBLIC;
 
-u8	g_ble_txPowerSet = RF_POWER_P3p01dBm;
+u8	g_ble_txPowerSet = BLE_DEFAULT_TX_POWER_IDX; // RF_POWER_P3p01dBm;
 _attribute_data_retention_	int device_in_connection_state;
 //_attribute_data_retention_	u32 advertise_begin_tick;
 _attribute_data_retention_	u32	interval_update_tick;
 _attribute_data_retention_	u8	sendTerminate_before_enterDeep = 0;
+#if (MTU_SIZE_SETTING)
 _attribute_data_retention_ 	int  mtuExchange_started_flg = 0;
+#endif
 volatile bool g_bleConnDoing = 0;
-
-/*
- * debug various
- * */
-//volatile u8 T_bleDataAbandom;
-//volatile
-u8 T_final_MTU_size;
-
-
 /*
  *  functions
  *
@@ -319,6 +318,22 @@ _attribute_ram_code_ int ble_rxfifo_empty(void){
     }
 }
 
+#if USE_BLE_OTA
+
+u8 ota_is_working;
+
+void app_enter_ota_mode(void) {
+	ota_is_working = 1;
+	bls_pm_setManualLatency(0);
+	bls_ota_setTimeout(16 * 1000000); // set OTA timeout  16 seconds
+}
+
+//extern u32 blt_ota_start_tick; // in "stack/ble/service/ble_ll_ota.h"
+static int app_bleOtaWrite(void * p) {
+	blt_ota_start_tick = clock_time() | 1;
+	return otaWrite(p);
+}
+#else
 static int app_bleOtaWrite(void *p){
 	rf_packet_att_data_t *req = (rf_packet_att_data_t*)p;
 	u8 len = req->rf_len - 9;
@@ -328,11 +343,12 @@ static int app_bleOtaWrite(void *p){
 	zb_ble_ci_cmd_handler(cmd_type, len, &(req->dat[2]));
 	return 0;
 }
-
 static int app_bleOtaRead(void *p){
 	my_OtaData++;  //for testing, user can fill the valid data here
 	return 0;
 }
+#endif
+
 
 unsigned char * str_bin2hex(unsigned char *d, unsigned char *s, int len) {
 	static const char* hex_ascii = { "0123456789ABCDEF" };
@@ -359,7 +375,7 @@ static void my_att_init(void){
 	flash_read_mid_uid_with_check(&mid, buf);
 	p = str_bin2hex(p, (unsigned char *)&mid, 3);
 	*p++ = '-';
-	memcpy(p, buf, 7);
+	memcpy(p, buf, 6);
 	//ser_uid_txt(p, &buf[4], 7);
 #endif
 
@@ -378,15 +394,16 @@ void app_switch_to_indirect_adv(u8 e, u8 *p, int n){
 						MY_APP_ADV_CHANNEL,
 						ADV_FP_NONE);
 
-	bls_ll_setAdvEnable(1);  //must: set adv enable
+	bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //must: set adv enable
 }
 
 
 
 void 	ble_remote_terminate(u8 e,u8 *p, int n){ //*p is terminate reason
 	device_in_connection_state = 0;
+#if (MTU_SIZE_SETTING)
 	mtuExchange_started_flg = 0;
-
+#endif
 	if(*p == HCI_ERR_CONN_TIMEOUT){
 
 	}
@@ -409,10 +426,10 @@ void 	ble_remote_terminate(u8 e,u8 *p, int n){ //*p is terminate reason
 	}
 #endif
 
-	 bls_ll_setAdvEnable(0);  //adv disable
+	 bls_ll_setAdvEnable(BLC_ADV_DISABLE);  //adv disable
 
 	if(*p != HCI_ERR_OP_CANCELLED_BY_HOST){
-		bls_ll_setAdvEnable(1);  //adv enable
+		bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //adv enable
 	}
 }
 
@@ -422,8 +439,9 @@ void 	ble_exception_data_abandom(u8 e,u8 *p, int n){
 }
 #endif
 
-_attribute_ram_code_ void	user_set_rf_power (u8 e, u8 *p, int n){
-	rf_set_power_level_index (g_ble_txPowerSet);
+//_attribute_ram_code_
+void	user_set_rf_power (u8 e, u8 *p, int n){
+	rf_set_power_level_index(g_ble_txPowerSet);
 }
 
 
@@ -517,17 +535,20 @@ int app_host_event_callback (u32 h, u8 *para, int n){
 
 		case GAP_EVT_SMP_CONN_ENCRYPTION_DONE:
 		{
+#if (MTU_SIZE_SETTING)
 			if(!mtuExchange_started_flg){  //master do not send MTU exchange request in time
 				blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, MTU_SIZE_SETTING);
 			}
+#endif
 		}
 		break;
 
 		case GAP_EVT_ATT_EXCHANGE_MTU:
 		{
-			gap_gatt_mtuSizeExchangeEvt_t *pEvt = (gap_gatt_mtuSizeExchangeEvt_t *)para;
-			T_final_MTU_size = pEvt->effective_MTU;
+#if (MTU_SIZE_SETTING)
+//			gap_gatt_mtuSizeExchangeEvt_t *pEvt = (gap_gatt_mtuSizeExchangeEvt_t *)para;
 			mtuExchange_started_flg = 1;   //set MTU size exchange flag here
+#endif
 		}
 		break;
 
@@ -563,11 +584,9 @@ void user_ble_normal_init(void){
 	blc_ll_initSlaveRole_module();				//slave module: 	 mandatory for BLE slave,
 	blc_ll_initPowerManagement_module();        //pm module:      	 optional
 
-
-
 	////// Host Initialization  //////////
 	blc_gap_peripheral_init();    //gap initialization
-	my_att_init (); //gatt initialization
+	my_att_init(); //gatt initialization
 	blc_l2cap_register_handler (blc_l2cap_packet_receive);  	//l2cap initialization
 
 	//Smp Initialization may involve flash write/erase(when one sector stores too much information,
@@ -598,10 +617,41 @@ void user_ble_normal_init(void){
 //	bls_ll_setAdvData( (u8 *)tbl_advData, sizeof(tbl_advData) );
 	tbl_scanRsp.size = sizeof(tbl_scanRsp.name) + sizeof(tbl_scanRsp.id) ;
 	tbl_scanRsp.id = GAP_ADTYPE_LOCAL_NAME_COMPLETE;
-
+#if BOARD == BOARD_MJWSD05MMC
+	tbl_scanRsp.name[0] = 'B';
+	tbl_scanRsp.name[1] = 'T';
+	tbl_scanRsp.name[2] = 'H';
+#elif BOARD == BOARD_MHO_C401
+	tbl_scanRsp.name[0] = 'M';
+	tbl_scanRsp.name[1] = 'H';
+	tbl_scanRsp.name[2] = 'O';
+#elif BOARD == BOARD_MHO_C401N
+	tbl_scanRsp.name[0] = 'M';
+	tbl_scanRsp.name[1] = 'H';
+	tbl_scanRsp.name[2] = 'O';
+#elif BOARD == BOARD_LYWSD03MMC
 	tbl_scanRsp.name[0] = 'A';
 	tbl_scanRsp.name[1] = 'T';
 	tbl_scanRsp.name[2] = 'C';
+#elif BOARD == BOARD_CGG1
+	tbl_scanRsp.name[0] = 'C';
+	tbl_scanRsp.name[1] = 'G';
+	tbl_scanRsp.name[2] = 'G';
+#elif BOARD == BOARD_CGDK2
+	tbl_scanRsp.name[0] = 'C';
+	tbl_scanRsp.name[1] = 'G';
+	tbl_scanRsp.name[2] = 'D';
+#elif BOARD == BOARD_MHO_C122
+	tbl_scanRsp.name[0] = 'M';
+	tbl_scanRsp.name[1] = 'H';
+	tbl_scanRsp.name[2] = 'O';
+#elif BOARD == BOARD_TS0201_TZ3000
+	tbl_scanRsp.name[0] = 'T';
+	tbl_scanRsp.name[1] = 'H';
+	tbl_scanRsp.name[2] = 'S';
+#else
+#error "DEVICE_TYPE = ?"
+#endif
 
 	tbl_scanRsp.name[3] = '_';
 	tbl_scanRsp.name[4] = int_to_hex(mac_public[2] >> 4);
@@ -629,12 +679,17 @@ void user_ble_normal_init(void){
 	bls_app_registerEventCallback (BLT_EV_FLAG_CONN_PARA_REQ, &task_conn_update_req);
 	bls_app_registerEventCallback (BLT_EV_FLAG_CONN_PARA_UPDATE, &task_conn_update_done);
 
-
+#if USE_BLE_OTA
+extern u8 mcuBootAddr; //boot address flag
+	ota_firmware_size_k = 216;
+	ota_program_offset = (mcuBootAddr) ? 0 : FLASH_ADDR_OF_OTA_IMAGE;
+	bls_ota_clearNewFwDataArea();
+	bls_ota_registerStartCmdCb(app_enter_ota_mode);
+#endif
 
 	///////////////////// Power Management initialization///////////////////
 #if(BLE_APP_PM_ENABLE)
-	//blc_ll_initPowerManagement_module();
-	bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
+	bls_pm_setSuspendMask(SUSPEND_ADV | SUSPEND_CONN);
 	//bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_ENTER, &ble_remote_set_sleep_wakeup);
 #else
 	bls_pm_setSuspendMask (SUSPEND_DISABLE);
@@ -642,16 +697,12 @@ void user_ble_normal_init(void){
 //	advertise_begin_tick = clock_time();
 }
 
-static void user_init_deepRetn(void){
-	blc_ll_initBasicMCU();   //mandatory
-	rf_set_power_level_index (g_ble_txPowerSet);
-	blc_ll_recoverDeepRetention();
-}
-
 void user_ble_init(bool isRetention){
 	sendTerminate_before_enterDeep = 0;
 	if(isRetention){
-		user_init_deepRetn();
+		blc_ll_initBasicMCU();   //mandatory
+		rf_set_power_level_index(g_ble_txPowerSet);
+		blc_ll_recoverDeepRetention();
 	}else{
 		user_ble_normal_init();
 	}
@@ -659,12 +710,16 @@ void user_ble_init(bool isRetention){
 
 
 int blt_pm_proc(void) {
-	if(sendTerminate_before_enterDeep == 1){ //sending Terminate and wait for ack before enter deepsleep
+#if 0
+	if(sendTerminate_before_enterDeep == 1) {  //sending Terminate and wait for ack before enter deepsleep
 	}
-	else if(sendTerminate_before_enterDeep == 2){  //Terminate OK
+	else if(sendTerminate_before_enterDeep == 2) { //Terminate OK
 		return 1;
 	}
 	return 0;
+#else
+	return sendTerminate_before_enterDeep == 2;
+#endif
 }
 
 

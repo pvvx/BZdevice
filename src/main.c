@@ -65,17 +65,21 @@ int main(void){
 #endif
 
 #if PM_ENABLE
-    int loop_cycle = 3;
+    int loop_cycle = 1;
 #endif
 
     while(1) {
 		concurrent_mode_main_loop();
 		task_keys();
 #if PM_ENABLE
-		if(loop_cycle > 0){
-			loop_cycle--;
+		if(loop_cycle) {
+			loop_cycle = 0;
+#if USE_BLE_OTA
+extern u8 ota_is_working;
+		 if(!ota_is_working)
+#endif
 			sensors_task();
-		}else{
+		} else {
 			app_pm_task();
 		}
 #endif

@@ -46,6 +46,8 @@ bool app_zigbeeIdle(void){
 	return ret;
 }
 
+extern u8 ota_is_working;
+
 void app_pm_task(void) {
 	drv_pm_sleep_mode_e sleepMode = PM_SLEEP_MODE_DEEP_WITH_RETENTION; //PM_SLEEP_MODE_SUSPEND;//PM_SLEEP_MODE_DEEP_WITH_RETENTION;
 	drv_pm_wakeup_src_e wakeupSrc = PM_WAKEUP_SRC_PAD | PM_WAKEUP_SRC_TIMER;
@@ -60,11 +62,12 @@ void app_pm_task(void) {
 	 * */
 	if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN || g_bleConnDoing){
 		if(!bls_pm_conditionCbIsValid()){
+//			bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_ADV | DEEPSLEEP_RETENTION_CONN);
 			bls_pm_setWakeupSource(PM_WAKEUP_PAD);
 			bls_pm_conditionCbRegister(app_zigbeeIdle);   //register it to enable ble suspend mode
 		}
 		return;
-	}else if(APP_BLE_STATE_GET() == BLS_LINK_STATE_ADV){
+	} else if(APP_BLE_STATE_GET() == BLS_LINK_STATE_ADV){
 		if(bls_pm_conditionCbIsValid()){
 			bls_pm_conditionCbUnregister();
 		}

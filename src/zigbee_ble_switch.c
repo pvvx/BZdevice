@@ -139,14 +139,16 @@ void concurrent_mode_main_loop(void){
 		  * */
 
 		 blt_sdk_main_loop();
-
+#if USE_BLE_OTA
+		 if(ota_is_working)
+			 return;
+#endif
 		 if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN) {
 			 if(batteryValueInCCC && (measured_data.flag & FLG_MEASURE_CC_VBAT)) {
 				 measured_data.flag &= ~FLG_MEASURE_CC_VBAT;
 				 bls_att_pushNotifyData(BATT_LEVEL_INPUT_DP_H, (u8 *)&my_batVal, 1);
 			 }
 		 }
-
 
 		 DBG_ZIGBEE_STATUS(0x30);
 
@@ -197,6 +199,7 @@ void concurrent_mode_main_loop(void){
 	 }
 }
 
+#if 0
 u8 ble_task_stop(void){
 	u32 r = drv_disable_irq();
 
@@ -204,7 +207,7 @@ u8 ble_task_stop(void){
 	if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN){
 		ret = bls_ll_terminateConnection(HCI_ERR_OP_CANCELLED_BY_HOST);//cut any ble connections
 	}else{
-		ret = bls_ll_setAdvEnable(0);
+		ret = bls_ll_setAdvEnable(BLC_ADV_DISABLE);
 
 		/* rf irq is cleared in the "bls_ll_setAdvEnable",
 		 * so that the rf tx/rx interrupt will be missed if the "bls_ll_setAdvEnable" is called in Zigbee mode
@@ -221,7 +224,7 @@ u8 ble_task_stop(void){
 u8 ble_task_restart(void){
 	u32 r = drv_disable_irq();
 
-	ble_sts_t ret = bls_ll_setAdvEnable(1);
+	ble_sts_t ret = bls_ll_setAdvEnable(BLC_ADV_ENABLE);
 	/* rf irq is cleared in the "bls_ll_setAdvEnable",
 	 * so that the rf tx/rx interrupt will be missed if the "bls_ll_setAdvEnable" is called in Zigbee mode
 	 */
@@ -232,5 +235,5 @@ u8 ble_task_restart(void){
 	drv_restore_irq(r);
 	return ret;
 }
-
+#endif
 

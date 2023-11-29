@@ -24,8 +24,8 @@
 #ifndef _ZIGBEE_BLE_SWITCH_H_
 #define _ZIGBEE_BLE_SWITCH_H_
 
-#define  ZIGBEE_AFTER_TIME    (16 * 1000 * 4)	// 16 ms
-#define  BLE_IDLE_TIME   	  (16 * 1000 * 4)	// 16 ms
+#define  ZIGBEE_AFTER_TIME    (5 * 1000 * 4)	// 5 ms
+#define  BLE_IDLE_TIME   	  (5 * 1000 * 4)	// 5 ms
 
 typedef enum{
 	DUALMODE_SLOT_BLE = 0,
@@ -64,9 +64,9 @@ int is_switch_to_ble(void);
 
 int is_switch_to_zigbee(void);
 
-u8 ble_task_stop(void);
+//u8 ble_task_stop(void);
 
-u8 ble_task_restart(void);
+//u8 ble_task_restart(void);
 
 void zb_ble_switch_proc(void);
 
