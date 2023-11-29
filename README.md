@@ -25,3 +25,5 @@ TemperatureMeasurement: min/max/change - 30/180/10
 If the measured values by the sensor change rapidly:
 
 ![image](https://github.com/pvvx/BZdevice/assets/12629515/06cc4639-dbf2-48dc-91f5-ce85add8b7f6)
+
+For BLE it is always 10 seconds.
