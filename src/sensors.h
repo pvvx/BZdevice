@@ -1,0 +1,36 @@
+/*
+ * sensor.h
+ *
+ *  Created on: 14 нояб. 2023 г.
+ *      Author: pvvx
+ */
+
+#ifndef _SENSORS_H_
+#define _SENSORS_H_
+
+#if defined(SENSOR_TYPE)
+#include "sensors_shtxx.h"
+#include "sensor_cht8305.h"
+#else
+#error "Define USE_SENSOR!"
+#endif
+
+#if USE_SENSOR_ID
+extern u32 sensor_id;
+#endif
+
+
+// measured_data.flag:
+#define FLG_MEASURE_TH		0x0F
+#define FLG_MEASURE_VB		0XF0
+
+#define FLG_MEASURE_ADV		0x01
+#define FLG_MEASURE_CC_VBAT	0x10
+//
+
+
+void adc_channel_init(ADC_InputPchTypeDef p_ain); // in adc_drv.c
+u16 get_adc_mv(void); // in adc_drv.c
+void battery_detect(void);
+
+#endif /* _SENSORS_H_ */
