@@ -26,4 +26,9 @@ If the measured values by the sensor change rapidly:
 
 ![image](https://github.com/pvvx/BZdevice/assets/12629515/06cc4639-dbf2-48dc-91f5-ce85add8b7f6)
 
-For BLE it is always 10 seconds.
+For BLE, the transmission step of all measured values is always 10 seconds. The transmission is duplicated 2 times in 5 second increments.
+
+Zigbee transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/d8e98da0-13df-489b-8ac9-cb7a50797bca)
+
+BLE transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/511335e5-dd00-4bbd-983c-233976df4c7a)
+
