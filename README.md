@@ -5,7 +5,7 @@ Experimental firmware for devices on the TLSR825x chip operating simultaneously 
 
 Average consumption for Xiaomi LYWSD03MMC B1.4 - 18 µA
 
-* Warning: Not use BLE OTA TelinkMiFlasher for this version! The OTA BLE function uses a different format!
+* Warning: Not use BLE OTA TelinkMiFlasher for this version! In the current experimental version, BLE OTA is not yet stable. You may have to use [TelinkOTA.html](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) several times.
 
 ## Dual Zigbee + BLE device
 
@@ -39,3 +39,4 @@ It is not recommended to use experimental versions for those who do not have the
 For those not afraid to experiment:
 
 * The firmware is carried out from the [BLE version](https://github.com/pvvx/ATC_MiThermometer) by downloading a [*.zigbee or *.bin](https://github.com/pvvx/BZdevice/tree/master/bin) file  in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). In the file name input field, paste https://github.com/pvvx/BZdevice/raw/master/bin/1141-020a-01113001-Z03MMC.zigbee
+* For BLE OTA, when this version is already working, [TelinkOTA.html](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) is used. 
