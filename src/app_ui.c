@@ -189,8 +189,8 @@ static s32 keyTimerCb(void *arg)
 #else
 				light_on();
 #endif // USE_DISPLAY
-				//	zb_resetDevice();
-				drv_pm_sleep(PM_SLEEP_MODE_DEEPSLEEP, PM_WAKEUP_SRC_PAD | PM_WAKEUP_SRC_TIMER, 5*1000);
+				pm_wait_ms(2500);
+				zb_resetDevice();
 			}
 		} else {
 			g_sensorAppCtx.keyPressed = button_on;
@@ -214,14 +214,11 @@ void task_keys(void) {
 			g_sensorAppCtx.key1flag = 0;
 			g_sensorAppCtx.keyPressedTime = clock_time();
 			app_set_thb_report();
-			bls_ll_setAdvEnable(BLC_ADV_DISABLE);  // adv disable
-			bls_ll_setAdvParam(CONNECT_ADV_INTERVAL_MIN, CONNECT_ADV_INTERVAL_MAX,
-								ADV_TYPE_CONNECTABLE_UNDIRECTED, BLE_DEVICE_ADDRESS_TYPE,
-								0,  NULL,
-								DEF_APP_ADV_CHANNEL,
-								ADV_FP_NONE);
+			// set next adv. interval
 			adv_buf.adv_restore_count = 80;
-			bls_ll_setAdvEnable(BLC_ADV_ENABLE);  // adv enable
+			blta.advInt_min = CONNECT_ADV_INTERVAL_MIN;
+			blta.advInt_max = CONNECT_ADV_INTERVAL_MAX;
+			blta.adv_interval = CONNECT_ADV_INTERVAL_MIN*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
 			if(!g_sensorAppCtx.timerKeyEvt)
 				g_sensorAppCtx.timerKeyEvt
 				= TL_ZB_TIMER_SCHEDULE(keyTimerCb, NULL, 500); // 500 ms

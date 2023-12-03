@@ -46,7 +46,7 @@ bool app_zigbeeIdle(void){
 	return ret;
 }
 
-extern u8 ota_is_working;
+extern volatile u8 ota_is_working;
 
 void app_pm_task(void) {
 	drv_pm_sleep_mode_e sleepMode = PM_SLEEP_MODE_DEEP_WITH_RETENTION; //PM_SLEEP_MODE_SUSPEND;//PM_SLEEP_MODE_DEEP_WITH_RETENTION;
@@ -75,10 +75,13 @@ void app_pm_task(void) {
 
 	if(CURRENT_SLOT_GET() == DUALMODE_SLOT_ZIGBEE && app_zigbeeIdle()){
 		// task_keys();
+		if(ota_is_working) {
+			sleepMode = PM_SLEEP_MODE_MCU_STALL;
+		}
 		if(APP_BLE_STATE_GET() == BLS_LINK_STATE_IDLE){
 			drv_pm_lowPowerEnter();
-		}else{
-			if(!is_switch_to_ble()){
+		} else {
+			if(!is_switch_to_ble()) {
 				switch_to_ble_context();
 				drv_pm_sleep(sleepMode, wakeupSrc, get_ble_next_event_tick());
 			}

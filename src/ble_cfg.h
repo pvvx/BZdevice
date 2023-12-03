@@ -90,7 +90,7 @@ extern u8 my_HardStr[3];
 extern u8 my_batVal;
 extern u16 batteryValueInCCC;
 #if USE_BLE_OTA
-extern u8 ota_is_working;
+extern volatile u8 ota_is_working;
 #endif
 
 #endif /* SRC_BLE_CFG_H_ */

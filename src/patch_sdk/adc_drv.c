@@ -126,6 +126,8 @@ void adc_set_gpio_calib_vref(u16 x) {
 
 _attribute_ram_code_sec_
 void adc_channel_init(ADC_InputPchTypeDef p_ain) {
+	if(adc_vref_cfg2.vref == 0)
+		drv_calib_adc_verf();
 #if 0 // gpio set in app_config.h ?
 	if(p_ain == SHL_ADC_VBAT) {
 		// Set missing pin on case TLSR8251F512ET24/TLSR8253F512ET32

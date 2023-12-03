@@ -122,7 +122,7 @@ void zb_task(void){
 void concurrent_mode_main_loop(void){
 	u32 r = 0;
 
-	sensors_task();
+///	sensors_task();
 
 	APP_BLE_STATE_SET(BLE_BLT_STATE_GET()); //bltParam.blt_state);
 
@@ -140,8 +140,8 @@ void concurrent_mode_main_loop(void){
 
 		 blt_sdk_main_loop();
 #if USE_BLE_OTA
-		 if(ota_is_working)
-			 return;
+///		 if(ota_is_working)
+///			 return;
 #endif
 		 if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN) {
 			 if(batteryValueInCCC && (measured_data.flag & FLG_MEASURE_CC_VBAT)) {

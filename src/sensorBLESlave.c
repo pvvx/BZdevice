@@ -320,7 +320,7 @@ _attribute_ram_code_ int ble_rxfifo_empty(void){
 
 #if USE_BLE_OTA
 
-u8 ota_is_working;
+volatile u8 ota_is_working;
 
 void app_enter_ota_mode(void) {
 	ota_is_working = 1;
@@ -389,7 +389,7 @@ static void my_att_init(void){
 void app_switch_to_indirect_adv(u8 e, u8 *p, int n){
 
 	bls_ll_setAdvParam( DEF_ADV_INTERVAL_MIN, DEF_ADV_INTERVAL_MAX,
-						ADV_TYPE_CONNECTABLE_UNDIRECTED, BLE_DEVICE_ADDRESS_TYPE,
+						ADV_TYPE_CONNECTABLE_UNDIRECTED, OWN_ADDRESS_PUBLIC,
 						0,  NULL,
 						DEF_APP_ADV_CHANNEL,
 						ADV_FP_NONE);
@@ -400,7 +400,9 @@ void app_switch_to_indirect_adv(u8 e, u8 *p, int n){
 
 
 void 	ble_remote_terminate(u8 e,u8 *p, int n){ //*p is terminate reason
+
 	device_in_connection_state = 0;
+
 #if (MTU_SIZE_SETTING)
 	mtuExchange_started_flg = 0;
 #endif
@@ -426,8 +428,8 @@ void 	ble_remote_terminate(u8 e,u8 *p, int n){ //*p is terminate reason
 	}
 #endif
 
-	 bls_ll_setAdvEnable(BLC_ADV_DISABLE);  //adv disable
-
+	bls_ll_setAdvEnable(BLC_ADV_DISABLE);  //adv disable
+	adv_buf.adv_restore_count = 1;
 	if(*p != HCI_ERR_OP_CANCELLED_BY_HOST){
 		bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //adv enable
 	}
@@ -465,45 +467,33 @@ void	task_conn_update_done (u8 e, u8 *p, int n){
 }
 
 void blc_initMacAddress(int flash_addr, u8 *mac_public, u8 *mac_random_static){
-//	u8  mac_public[6] 		 = {0x00, 0x00, 0x00, 0x38, 0xC1, 0xA4};  //company id: 0xA4C138
-//	u8  mac_random_static[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0xC0};
-
 	u8 mac_read[8];
-	flash_read_page(flash_addr, 8, mac_read);
-
 	u8 value_rand[5];
-	generateRandomNum(5, value_rand);
-
-	u8 ff_six_byte[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-	if ( memcmp(mac_read, ff_six_byte, 6) ) {
+	flash_read_page(flash_addr, 8, mac_read);
+	u8 ff_six_byte[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+	if ( memcmp(mac_read, ff_six_byte, sizeof(mac_read)) ) {
 		memcpy(mac_public, mac_read, 6);  //copy public address from flash
 	}
-	else{  //no public address on flash
+	else {  //no public address on flash
+		generateRandomNum(sizeof(value_rand), value_rand);
 		mac_public[0] = value_rand[0];
 		mac_public[1] = value_rand[1];
 		mac_public[2] = value_rand[2];
 		mac_public[3] = 0x38;             //company id: 0xA4C138
 		mac_public[4] = 0xC1;
 		mac_public[5] = 0xA4;
+		mac_public[6] = value_rand[3];
+		mac_public[7] = value_rand[4];
 
-		flash_write_page (flash_addr, 6, mac_public);
+		flash_write_page (flash_addr, sizeof(mac_public), mac_public);
 	}
 
 	mac_random_static[0] = mac_public[0];
 	mac_random_static[1] = mac_public[1];
 	mac_random_static[2] = mac_public[2];
+	mac_random_static[3] = value_rand[3];
+	mac_random_static[4] = value_rand[4];
 	mac_random_static[5] = 0xC0; 			//for random static
-
-	u16 high_2_byte = (mac_read[6] | mac_read[7]<<8);
-	if(high_2_byte != 0xFFFF){
-		memcpy( (u8 *)(mac_random_static + 3), (u8 *)(mac_read + 6), 2);
-	}
-	else{
-		mac_random_static[3] = value_rand[3];
-		mac_random_static[4] = value_rand[4];
-
-		flash_write_page (flash_addr + 6, 2, (u8 *)(mac_random_static + 3) );
-	}
 }
 
 bool ble_connection_doing(void){
@@ -650,13 +640,14 @@ void user_ble_normal_init(void){
 #error "DEVICE_TYPE = ?"
 #endif
 
-	tbl_scanRsp.name[3] = '_';
+	tbl_scanRsp.name[3] = 'z';
 	tbl_scanRsp.name[4] = int_to_hex(mac_public[2] >> 4);
 	tbl_scanRsp.name[5] = int_to_hex(mac_public[2] & 0x0f);
 	tbl_scanRsp.name[6] = int_to_hex(mac_public[1] >> 4);
 	tbl_scanRsp.name[7] = int_to_hex(mac_public[1] & 0x0f);
 	tbl_scanRsp.name[8] = int_to_hex(mac_public[0] >> 4);
 	tbl_scanRsp.name[9] = int_to_hex(mac_public[0] & 0x0f);
+	bls_ll_setAdvEnable(BLC_ADV_DISABLE);
 	bls_ll_setScanRspData((u8 *)&tbl_scanRsp, sizeof(tbl_scanRsp));
 	app_switch_to_indirect_adv(0,0,0); //adv enable
 

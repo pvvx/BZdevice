@@ -24,8 +24,8 @@
 #ifndef _ZIGBEE_BLE_SWITCH_H_
 #define _ZIGBEE_BLE_SWITCH_H_
 
-#define  ZIGBEE_AFTER_TIME    (5 * 1000 * 4)	// 5 ms
-#define  BLE_IDLE_TIME   	  (5 * 1000 * 4)	// 5 ms
+#define  ZIGBEE_AFTER_TIME    (16 * 1000 * 4)	// 5 ms
+#define  BLE_IDLE_TIME   	  (16 * 1000 * 4)	// 5 ms
 
 typedef enum{
 	DUALMODE_SLOT_BLE = 0,
