@@ -166,10 +166,8 @@ static s32 keyTimerCb(void *arg)
 #ifdef ZCL_THERMOSTAT_UI_CFG
 			if(!g_sensorAppCtx.key1flag && clock_time_exceed( g_sensorAppCtx.keyPressedTime, 1900 * 1000)) { // 2 sec
 				g_sensorAppCtx.key1flag = 1;
-				if(g_zcl_thermostatUICfgAttrs.displayMode == 1)
-					g_zcl_thermostatUICfgAttrs.displayMode = 2;
-				else
-					g_zcl_thermostatUICfgAttrs.displayMode = 1;
+				if(g_zcl_thermostatUICfgAttrs.TemperatureDisplayMode != 1)
+					g_zcl_thermostatUICfgAttrs.TemperatureDisplayMode = 0;
 				zcl_thermostatDisplayMode_save();
 				read_sensor_and_save();
 			} else

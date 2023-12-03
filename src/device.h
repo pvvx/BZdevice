@@ -110,7 +110,8 @@ typedef struct {
  *  @brief Defined for thermostat UI config cluster attributes
  */
 typedef struct {
-	u8 displayMode;
+	u8 TemperatureDisplayMode;
+	u8 showSmiley;
 }zcl_thermostatUICfgAttr_t;
 
 
@@ -136,7 +137,8 @@ typedef struct _comfort_t {
  *  @brief Defined for saving thermostat attributes
  */
 typedef struct {
-	u8	displayMode;
+	u8	TemperatureDisplayMode;
+	u8	showSmiley;
 } zcl_nv_thermostatUiCfg_t;
 
 /**********************************************************************
