@@ -138,6 +138,7 @@ typedef struct __attribute__((packed)) _adv_bthome_ns1_t {
 typedef struct _adv_buf_t {
 	u32	send_count; // count & id advertise, = beacon_nonce.cnt32
 	u16	old_measured_count; // old measured_data.count
+	u16 adv_restore_count;
 	adv_bthome_ns1_t data;
 } adv_buf_t;
 

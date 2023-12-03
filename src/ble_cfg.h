@@ -10,9 +10,12 @@
 
 //#define MTU_SIZE_SETTING 						64 MTU
 
-#define MY_APP_ADV_CHANNEL					BLT_ENABLE_ADV_ALL
-#define MY_ADV_INTERVAL_MIN					8000	// 5000 ms * 1.6
-#define MY_ADV_INTERVAL_MAX					(MY_ADV_INTERVAL_MIN + 10) // + 6.25 ms
+#define DEF_APP_ADV_CHANNEL				BLT_ENABLE_ADV_ALL
+#define DEF_ADV_INTERVAL_MIN			8000	// 5000 ms * 1.6
+#define DEF_ADV_INTERVAL_MAX			(DEF_ADV_INTERVAL_MIN + 10) // + 6.25 ms
+
+#define CONNECT_ADV_INTERVAL_MIN		1600	// 1000 ms * 1.6
+#define CONNECT_ADV_INTERVAL_MAX		(CONNECT_ADV_INTERVAL_MIN + 10) // + 6.25 ms
 
 /* interval: 	n*1.25 ms
  * lantency:	(n+1)*interval*1.25 ms
@@ -78,7 +81,7 @@ typedef enum{
 	OTA_CMD_OUT_DESC_H,						//UUID: 2901, 	VALUE: otaName
 
 
-	ATT_END_H,
+	ATT_END_H
 
 } ATT_HANDLE;
 

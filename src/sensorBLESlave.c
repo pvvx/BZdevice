@@ -388,10 +388,10 @@ static void my_att_init(void){
 
 void app_switch_to_indirect_adv(u8 e, u8 *p, int n){
 
-	bls_ll_setAdvParam( MY_ADV_INTERVAL_MIN, MY_ADV_INTERVAL_MAX,
-						ADV_TYPE_CONNECTABLE_UNDIRECTED, app_own_address_type,
+	bls_ll_setAdvParam( DEF_ADV_INTERVAL_MIN, DEF_ADV_INTERVAL_MAX,
+						ADV_TYPE_CONNECTABLE_UNDIRECTED, BLE_DEVICE_ADDRESS_TYPE,
 						0,  NULL,
-						MY_APP_ADV_CHANNEL,
+						DEF_APP_ADV_CHANNEL,
 						ADV_FP_NONE);
 
 	bls_ll_setAdvEnable(BLC_ADV_ENABLE);  //must: set adv enable
@@ -570,12 +570,9 @@ void user_ble_normal_init(void){
 	u8  mac_random_static[6];
 	blc_initMacAddress(CFG_MAC_ADDRESS, mac_public, mac_random_static);
 
-	#if(BLE_DEVICE_ADDRESS_TYPE == BLE_DEVICE_ADDRESS_PUBLIC)
-		app_own_address_type = OWN_ADDRESS_PUBLIC;
-	#elif(BLE_DEVICE_ADDRESS_TYPE == BLE_DEVICE_ADDRESS_RANDOM_STATIC)
-		app_own_address_type = OWN_ADDRESS_RANDOM;
-		blc_ll_setRandomAddr(mac_random_static);
-	#endif
+#if(BLE_DEVICE_ADDRESS_TYPE == BLE_DEVICE_ADDRESS_RANDOM_STATIC)
+	blc_ll_setRandomAddr(mac_random_static);
+#endif
 
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU();                      //mandatory

@@ -5,7 +5,8 @@
  *      Author: pvvx
  */
 
-//#include "tl_common.h"
+#include "tl_common.h"
+#include "ble_cfg.h" // 8258/gap/gap.h"
 #include "stack/ble/ble.h" // 8258/gap/gap.h"
 #include "device.h"
 #include "sensors.h"
@@ -56,6 +57,14 @@ void bthome_data_beacon(padv_bthome_ns1_t p) {
 //	bls_set_advertise_prepare(app_advertise_prepare_handler); // TODO: not work if EXTENDED_ADVERTISING
 int app_advertise_prepare_handler(rf_packet_adv_t * p)	{
 	(void) p;
+	if(adv_buf.adv_restore_count) {
+		adv_buf.adv_restore_count--;
+		if(adv_buf.adv_restore_count == 0)
+			// restore next adv. interval
+			blta.advInt_min = DEF_ADV_INTERVAL_MIN;
+			blta.advInt_max = DEF_ADV_INTERVAL_MAX;
+			blta.adv_interval = DEF_ADV_INTERVAL_MIN*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
+	}
 	if (measured_data.flag & FLG_MEASURE_ADV) { // new measured_data ?
 		measured_data.flag &= ~FLG_MEASURE_ADV;
 		adv_buf.send_count++; // count & id advertise, = beacon_nonce.cnt32

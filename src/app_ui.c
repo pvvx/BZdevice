@@ -34,6 +34,9 @@
 #include "lcd.h"
 #include "app_ui.h"
 #include "reporting.h"
+#include "stack/ble/ble_8258/ble.h"
+#include "ble_cfg.h"
+#include "bthome_beacon.h"
 
 /**********************************************************************
  * LOCAL CONSTANTS
@@ -174,24 +177,20 @@ static s32 keyTimerCb(void *arg)
 			if(clock_time_exceed( g_sensorAppCtx.keyPressedTime, 6900 * 1000)) { // 7 sec
 				g_sensorAppCtx.keyPressedTime = clock_time();
 #if	USE_DISPLAY
-#if BOARD == BOARD_MHO_C401N
-				show_connected_symbol(false);
-				update_lcd();
-#else
-				//show_ble_symbol(true);
-				show_blink_screen();
-#endif
-#else
-				light_on();
-#endif // USE_DISPLAY
-
-				tl_bdbReset2FN();
-
 #ifdef USE_EPD
 				while(task_lcd())
 					pm_wait_ms(USE_EPD);
 #endif
-				zb_resetDevice();
+				show_blink_screen();
+#ifdef USE_EPD
+				while(task_lcd())
+					pm_wait_ms(USE_EPD);
+#endif
+#else
+				light_on();
+#endif // USE_DISPLAY
+				//	zb_resetDevice();
+				drv_pm_sleep(PM_SLEEP_MODE_DEEPSLEEP, PM_WAKEUP_SRC_PAD | PM_WAKEUP_SRC_TIMER, 5*1000);
 			}
 		} else {
 			g_sensorAppCtx.keyPressed = button_on;
@@ -215,6 +214,14 @@ void task_keys(void) {
 			g_sensorAppCtx.key1flag = 0;
 			g_sensorAppCtx.keyPressedTime = clock_time();
 			app_set_thb_report();
+			bls_ll_setAdvEnable(BLC_ADV_DISABLE);  // adv disable
+			bls_ll_setAdvParam(CONNECT_ADV_INTERVAL_MIN, CONNECT_ADV_INTERVAL_MAX,
+								ADV_TYPE_CONNECTABLE_UNDIRECTED, BLE_DEVICE_ADDRESS_TYPE,
+								0,  NULL,
+								DEF_APP_ADV_CHANNEL,
+								ADV_FP_NONE);
+			adv_buf.adv_restore_count = 80;
+			bls_ll_setAdvEnable(BLC_ADV_ENABLE);  // adv enable
 			if(!g_sensorAppCtx.timerKeyEvt)
 				g_sensorAppCtx.timerKeyEvt
 				= TL_ZB_TIMER_SCHEDULE(keyTimerCb, NULL, 500); // 500 ms
