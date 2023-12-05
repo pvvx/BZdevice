@@ -124,7 +124,7 @@ extern "C" {
 #define ZCL_OTA_SUPPORT								1 // 0 or 1
 #define REJOIN_FAILURE_TIMER						1
 #if TOUCHLINK_SUPPORT
-#define ZCL_ZLL_COMMISSIONING_SUPPORT				0
+#define ZCL_ZLL_COMMISSIONING_SUPPORT				1
 #endif
 
 /* BLE */
