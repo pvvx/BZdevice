@@ -3,6 +3,11 @@ Experimental firmware for devices on the TLSR825x chip operating simultaneously 
 
 It is not recommended to use experimental versions for those who do not have the ability to reprogram the device using wired connections!
 
+Currently supported devices: [LYWSD03MMC](https://pvvx.github.io/ATC_MiThermometer/), [CGDK2](https://pvvx.github.io/CGDK2/), [MHO-C122](https://pvvx.github.io/MHO_C122), [MHO-C401N](https://pvvx.github.io/MHO_C401N), [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000/)
+
+In developing: [MHO-C401(old)](https://pvvx.github.io/MHO_C401), [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC), [CGG1-M](https://pvvx.github.io/CGG1), [TS0202_TZ3000](https://pvvx.github.io/TS0202_TZ3000)
+
+
 ## Firmware supports:
 
 * Zigbee OTA
