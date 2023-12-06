@@ -501,7 +501,7 @@ typedef enum{
 	OWN_ADDRESS_RANDOM = 1,
 	OWN_ADDRESS_RESOLVE_PRIVATE_PUBLIC = 2,
 	OWN_ADDRESS_RESOLVE_PRIVATE_RANDOM = 3,
-}own_addr_type_t;
+} own_addr_type_t;
 
 
 

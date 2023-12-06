@@ -176,9 +176,11 @@ void zbdemo_bdbCommissioningCb(u8 status, void *arg){
 			if(g_sensorAppCtx.timerSteerEvt){
 				TL_ZB_TIMER_CANCEL(&g_sensorAppCtx.timerSteerEvt);
 			}
+#if REJOIN_FAILURE_TIMER
 			if(g_sensorAppCtx.timerRejoinBackoffEvt){
 				TL_ZB_TIMER_CANCEL(&g_sensorAppCtx.timerRejoinBackoffEvt);
 			}
+#endif
 #ifdef ZCL_POLL_CTRL
 		    sensorDevice_zclCheckInStart();
 #endif
@@ -309,9 +311,11 @@ void sensorDevice_otaProcessMsgHandler(u8 evt, u8 status)
 void sensorDevice_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
 {
     if(pLeaveCnf->status == SUCCESS){
+#if REJOIN_FAILURE_TIMER
 		if(g_sensorAppCtx.timerRejoinBackoffEvt){
 			TL_ZB_TIMER_CANCEL(&g_sensorAppCtx.timerRejoinBackoffEvt);
 		}
+#endif
     	//zb_resetDevice();
     }
 }

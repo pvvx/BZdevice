@@ -52,9 +52,6 @@ extern "C" {
 /* PA */
 #define PA_ENABLE						0
 
-/* BDB */
-#define TOUCHLINK_SUPPORT				1
-#define FIND_AND_BIND_SUPPORT			0
 
 #define CLOCK_SYS_CLOCK_HZ  		24000000 //48000000
 
@@ -114,6 +111,9 @@ extern "C" {
 /**********************************************************************
  * ZCL cluster support setting
  */
+/* BDB */
+#define TOUCHLINK_SUPPORT							1
+#define FIND_AND_BIND_SUPPORT						1
 #define ZCL_POWER_CFG_SUPPORT						1
 //#define ZCL_IAS_ZONE_SUPPORT						1
 #define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			1
@@ -121,7 +121,7 @@ extern "C" {
 #define ZCL_THERMOSTAT_UI_CFG_SUPPORT				USE_DISPLAY
 #define ZCL_POLL_CTRL_SUPPORT						1
 #define ZCL_GROUP_SUPPORT							1
-#define ZCL_OTA_SUPPORT								1 // 0 or 1
+#define ZCL_OTA_SUPPORT								1
 #define REJOIN_FAILURE_TIMER						1
 #if TOUCHLINK_SUPPORT
 #define ZCL_ZLL_COMMISSIONING_SUPPORT				1
@@ -133,7 +133,7 @@ extern "C" {
 #define BLE_APP_PM_ENABLE					PM_ENABLE
 #define USE_DEVICE_INFO_CHR_UUID			1
 #define USE_FLASH_SERIAL_UID				1
-#define USE_BLE_OTA							1
+#define USE_BLE_OTA							ZCL_OTA_SUPPORT
 
 
 // for consistency

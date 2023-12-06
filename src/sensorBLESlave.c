@@ -318,6 +318,13 @@ _attribute_ram_code_ int ble_rxfifo_empty(void){
     }
 }
 
+void setAdvTime(u16 count, u16 interval) {
+	adv_buf.adv_restore_count = count;
+	blta.advInt_min = interval;
+	blta.advInt_max = interval + 10;
+	blta.adv_interval = interval*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
+}
+
 #if USE_BLE_OTA
 
 volatile u8 ota_is_working;
