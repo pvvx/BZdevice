@@ -195,7 +195,7 @@ void stack_init(void)
 	zb_zdoCbRegister((zdo_appIndCb_t *)&appCbLst);
 }
 
-#if defined(SHOW_SMILEY) &&	USE_DISPLAY
+#if USE_DISPLAY && SHOW_SMILEY
 //const scomfort_t def_cmf = {
 scomfort_t cmf = {
     .t = {2100,2600}, // x0.01 C
@@ -238,7 +238,7 @@ void read_sensor_and_save(void) {
     show_small_number((measured_data.humi + 50) / 100, 1);
     show_battery_symbol(g_zcl_powerAttrs.batteryPercentage < 10);
 #endif // BOARD == BOARD_CGDK2
-#ifdef SHOW_SMILEY
+#if SHOW_SMILEY
 #ifdef ZCL_THERMOSTAT_UI_CFG
     if(g_zcl_thermostatUICfgAttrs.showSmiley == 0)
     	show_smiley(is_comfort(measured_data.temp, measured_data.humi) ? 1 : 2);
@@ -295,7 +295,7 @@ void user_app_init(void)
 	/* Register endPoint */
 	af_endpointRegister(SENSOR_DEVICE_ENDPOINT, (af_simple_descriptor_t *)&sensorDevice_simpleDesc, zcl_rx_handler, NULL);
 #if ZCL_THERMOSTAT_UI_CFG_SUPPORT
-	zcl_thermostatDisplayMode_restore();
+	zcl_thermostatConfig_restore();
 #endif
 	zcl_reportingTabInit();
 

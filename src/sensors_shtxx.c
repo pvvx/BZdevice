@@ -125,6 +125,14 @@ u32 get_sensor_id(void) {
 }
 #endif
 
+static void sensor_ms_end(void) {
+	// Sleep command of the sensor = sensor_go_sleep();
+	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
+		send_sensor_word(SHTC3_GO_SLEEP); // Sleep command of the sensor
+	else if(sensor_i2c_addr)
+		send_sensor_byte(SHT4x_MEASURE_HI);
+}
+
 static int check_sensor(void) {
 	sensor_i2c_addr = scan_i2c_addr(SHTC3_I2C_ADDR << 1);
 	if(!sensor_i2c_addr) {
@@ -139,8 +147,7 @@ static int check_sensor(void) {
 
 void init_sensor(void) {
 	//scan_i2c_addr(0);
-	sensor_i2c_addr = 0;
-	send_sensor_byte(0x06); // Reset command using the general call address
+	send_i2c_byte(0, 0x06); // Reset command using the general call address
 	sleep_us(SHTC3_WAKEUP_us);	// 240 us
 	//	Wake-up command of the SHTC3 sensor
 	sensor_i2c_addr = SHTC3_I2C_ADDR << 1;
@@ -150,8 +157,7 @@ void init_sensor(void) {
 #if USE_SENSOR_ID
 	sensor_id = get_sensor_id();
 #endif
-	if(sensor_i2c_addr && sensor_i2c_addr != (SHTC3_I2C_ADDR << 1))
-		send_sensor_byte(SHT4x_MEASURE_HI);
+	sensor_ms_end();
 }
 
 _SENSOR_SPEED_CODE_SEC_
@@ -205,11 +211,11 @@ static int read_sensor_cb(void) {
 			while (reg_i2c_status & FLD_I2C_CMD_BUSY);
 			if (crc == data && _temp != 0xffff) {
 				irq_restore(r);
-				measured_data.temp = ((s32)(17500*_temp) >> 16) - 4500; // x 0.01 C
+				measured_data.temp = ((s32)(17500*_temp) >> 16) - 4500 + g_zcl_thermostatUICfgAttrs.temp_offset * 10;; // x 0.01 C
 				if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
-					measured_data.humi = ((u32)(10000*_humi) >> 16); // x 0.01 %
+					measured_data.humi = ((u32)(10000*_humi) >> 16) + g_zcl_thermostatUICfgAttrs.humi_offset * 10; // x 0.01 %
 				 else
-					measured_data.humi = ((u32)(12500*_humi) >> 16) - 600; // x 0.01 %
+					measured_data.humi = ((u32)(12500*_humi) >> 16) - 600 + g_zcl_thermostatUICfgAttrs.humi_offset * 10; // x 0.01 %
 				if (measured_data.humi < 0) measured_data.humi = 0;
 				else if (measured_data.humi > 9999) measured_data.humi = 9999;
 				measured_data.count++;
@@ -222,12 +228,9 @@ static int read_sensor_cb(void) {
 		}
 		irq_restore(r);
 	} while (i--);
-	soft_reset_sensor();
+	check_sensor();
 	// Sleep command of the sensor = sensor_go_sleep();
-	if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1))
-		send_sensor_word(SHTC3_GO_SLEEP); // Sleep command of the sensor
-	else if(sensor_i2c_addr)
-		send_sensor_byte(SHT4x_MEASURE_HI);
+	sensor_ms_end();
 	return 0;
 }
 
