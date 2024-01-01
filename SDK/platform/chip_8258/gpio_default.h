@@ -683,48 +683,48 @@
  */
 static inline void gpio_analog_resistance_init(void)
 {
-	analog_write (0x0e,  PULL_WAKEUP_SRC_PA0 |
-						(PULL_WAKEUP_SRC_PA1<<2) |
-						(PULL_WAKEUP_SRC_PA2<<4) |
-						(PULL_WAKEUP_SRC_PA3<<6));
+		analog_write (0x0e,  PULL_WAKEUP_SRC_PA0 |
+							(PULL_WAKEUP_SRC_PA1<<2) |
+							(PULL_WAKEUP_SRC_PA2<<4) |
+							(PULL_WAKEUP_SRC_PA3<<6));
 
-	analog_write (0x0f,  PULL_WAKEUP_SRC_PA4 |
-						(PULL_WAKEUP_SRC_PA5<<2) |
-						(PULL_WAKEUP_SRC_PA6<<4) |
-						(PULL_WAKEUP_SRC_PA7<<6));
-
-
-	analog_write (0x10,  PULL_WAKEUP_SRC_PB0 |
-						(PULL_WAKEUP_SRC_PB1<<2) |
-						(PULL_WAKEUP_SRC_PB2<<4) |
-						(PULL_WAKEUP_SRC_PB3<<6));
-
-	analog_write (0x11,  PULL_WAKEUP_SRC_PB4 |
-						(PULL_WAKEUP_SRC_PB5<<2) |
-						(PULL_WAKEUP_SRC_PB6<<4) |
-						(PULL_WAKEUP_SRC_PB7<<6));
+		analog_write (0x0f,  PULL_WAKEUP_SRC_PA4 |
+							(PULL_WAKEUP_SRC_PA5<<2) |
+							(PULL_WAKEUP_SRC_PA6<<4) |
+							(PULL_WAKEUP_SRC_PA7<<6));
 
 
-	analog_write (0x12,  PULL_WAKEUP_SRC_PC0 |
-						(PULL_WAKEUP_SRC_PC1<<2) |
-						(PULL_WAKEUP_SRC_PC2<<4) |
-						(PULL_WAKEUP_SRC_PC3<<6));
+		analog_write (0x10,  PULL_WAKEUP_SRC_PB0 |
+							(PULL_WAKEUP_SRC_PB1<<2) |
+							(PULL_WAKEUP_SRC_PB2<<4) |
+							(PULL_WAKEUP_SRC_PB3<<6));
 
-	analog_write (0x13,  PULL_WAKEUP_SRC_PC4 |
-						(PULL_WAKEUP_SRC_PC5<<2) |
-						(PULL_WAKEUP_SRC_PC6<<4) |
-						(PULL_WAKEUP_SRC_PC7<<6));
+		analog_write (0x11,  PULL_WAKEUP_SRC_PB4 |
+							(PULL_WAKEUP_SRC_PB5<<2) |
+							(PULL_WAKEUP_SRC_PB6<<4) |
+							(PULL_WAKEUP_SRC_PB7<<6));
 
 
-	analog_write (0x14,  PULL_WAKEUP_SRC_PD0 |
-						(PULL_WAKEUP_SRC_PD1<<2) |
-						(PULL_WAKEUP_SRC_PD2<<4) |
-						(PULL_WAKEUP_SRC_PD3<<6));
+		analog_write (0x12,  PULL_WAKEUP_SRC_PC0 |
+							(PULL_WAKEUP_SRC_PC1<<2) |
+							(PULL_WAKEUP_SRC_PC2<<4) |
+							(PULL_WAKEUP_SRC_PC3<<6));
 
-	analog_write (0x15,  PULL_WAKEUP_SRC_PD4 |
-						(PULL_WAKEUP_SRC_PD5<<2) |
-						(PULL_WAKEUP_SRC_PD6<<4) |
-						(PULL_WAKEUP_SRC_PD7<<6));
+		analog_write (0x13,  PULL_WAKEUP_SRC_PC4 |
+							(PULL_WAKEUP_SRC_PC5<<2) |
+							(PULL_WAKEUP_SRC_PC6<<4) |
+							(PULL_WAKEUP_SRC_PC7<<6));
+
+
+		analog_write (0x14,  PULL_WAKEUP_SRC_PD0 |
+							(PULL_WAKEUP_SRC_PD1<<2) |
+							(PULL_WAKEUP_SRC_PD2<<4) |
+							(PULL_WAKEUP_SRC_PD3<<6));
+
+		analog_write (0x15,  PULL_WAKEUP_SRC_PD4 |
+							(PULL_WAKEUP_SRC_PD5<<2) |
+							(PULL_WAKEUP_SRC_PD6<<4) |
+							(PULL_WAKEUP_SRC_PD7<<6));
 }
 
 /**
@@ -742,6 +742,7 @@ static inline void gpio_analog_resistance_init(void)
  */
 static inline void gpio_init(int anaRes_init_en)
 {
+	//PA group
 	reg_gpio_pa_setting1 =
 		(PA0_INPUT_ENABLE<<8) 	| (PA1_INPUT_ENABLE<<9)	| (PA2_INPUT_ENABLE<<10)	| (PA3_INPUT_ENABLE<<11) |
 		(PA4_INPUT_ENABLE<<12)	| (PA5_INPUT_ENABLE<<13)	| (PA6_INPUT_ENABLE<<14)	| (PA7_INPUT_ENABLE<<15) |
@@ -759,15 +760,14 @@ static inline void gpio_init(int anaRes_init_en)
 	//ie
 	analog_write(areg_gpio_pb_ie, 	(PB0_INPUT_ENABLE<<0) 	| (PB1_INPUT_ENABLE<<1)	| (PB2_INPUT_ENABLE<<2)	| (PB3_INPUT_ENABLE<<3) |
 									(PB4_INPUT_ENABLE<<4)	| (PB5_INPUT_ENABLE<<5) | (PB6_INPUT_ENABLE<<6)	| (PB7_INPUT_ENABLE<<7) );
-	//oen
-	reg_gpio_pb_oen =
-		((PB0_OUTPUT_ENABLE?0:1)<<0)	| ((PB1_OUTPUT_ENABLE?0:1)<<1) | ((PB2_OUTPUT_ENABLE?0:1)<<2)	| ((PB3_OUTPUT_ENABLE?0:1)<<3) |
-		((PB4_OUTPUT_ENABLE?0:1)<<4)	| ((PB5_OUTPUT_ENABLE?0:1)<<5) | ((PB6_OUTPUT_ENABLE?0:1)<<6)	| ((PB7_OUTPUT_ENABLE?0:1)<<7);
 	//dataO
 	reg_gpio_pb_out =
 		(PB0_DATA_OUT<<0)	| (PB1_DATA_OUT<<1)	| (PB2_DATA_OUT<<2)	| (PB3_DATA_OUT<<3) |
 		(PB4_DATA_OUT<<4)	| (PB5_DATA_OUT<<5)	| (PB6_DATA_OUT<<6)	| (PB7_DATA_OUT<<7) ;
-
+	//oen
+	reg_gpio_pb_oen =
+		((PB0_OUTPUT_ENABLE?0:1)<<0)	| ((PB1_OUTPUT_ENABLE?0:1)<<1) | ((PB2_OUTPUT_ENABLE?0:1)<<2)	| ((PB3_OUTPUT_ENABLE?0:1)<<3) |
+		((PB4_OUTPUT_ENABLE?0:1)<<4)	| ((PB5_OUTPUT_ENABLE?0:1)<<5) | ((PB6_OUTPUT_ENABLE?0:1)<<6)	| ((PB7_OUTPUT_ENABLE?0:1)<<7);
 	//ds
 	analog_write(areg_gpio_pb_ds, 	(PB0_DATA_STRENGTH<<0) 	| (PB1_DATA_STRENGTH<<1)  | (PB2_DATA_STRENGTH<<2)	| (PB3_DATA_STRENGTH<<3) |
 									(PB4_DATA_STRENGTH<<4)	| (PB5_DATA_STRENGTH<<5)  | (PB6_DATA_STRENGTH<<6)	| (PB7_DATA_STRENGTH<<7) );
@@ -780,20 +780,17 @@ static inline void gpio_init(int anaRes_init_en)
 	//ie
 	analog_write(areg_gpio_pc_ie, 	(PC0_INPUT_ENABLE<<0) 	| (PC1_INPUT_ENABLE<<1)	| (PC2_INPUT_ENABLE<<2)	| (PC3_INPUT_ENABLE<<3) |
 									(PC4_INPUT_ENABLE<<4)	| (PC5_INPUT_ENABLE<<5) | (PC6_INPUT_ENABLE<<6)	| (PC7_INPUT_ENABLE<<7) );
-
-	//oen
-	reg_gpio_pc_oen =
-		((PC0_OUTPUT_ENABLE?0:1)<<0)	| ((PC1_OUTPUT_ENABLE?0:1)<<1) | ((PC2_OUTPUT_ENABLE?0:1)<<2)	| ((PC3_OUTPUT_ENABLE?0:1)<<3) |
-		((PC4_OUTPUT_ENABLE?0:1)<<4)	| ((PC5_OUTPUT_ENABLE?0:1)<<5) | ((PC6_OUTPUT_ENABLE?0:1)<<6)	| ((PC7_OUTPUT_ENABLE?0:1)<<7);
 	//dataO
 	reg_gpio_pc_out =
 		(PC0_DATA_OUT<<0)	| (PC1_DATA_OUT<<1)	| (PC2_DATA_OUT<<2)	| (PC3_DATA_OUT<<3) |
 		(PC4_DATA_OUT<<4)	| (PC5_DATA_OUT<<5)	| (PC6_DATA_OUT<<6)	| (PC7_DATA_OUT<<7) ;
-
+	//oen
+	reg_gpio_pc_oen =
+		((PC0_OUTPUT_ENABLE?0:1)<<0)	| ((PC1_OUTPUT_ENABLE?0:1)<<1) | ((PC2_OUTPUT_ENABLE?0:1)<<2)	| ((PC3_OUTPUT_ENABLE?0:1)<<3) |
+		((PC4_OUTPUT_ENABLE?0:1)<<4)	| ((PC5_OUTPUT_ENABLE?0:1)<<5) | ((PC6_OUTPUT_ENABLE?0:1)<<6)	| ((PC7_OUTPUT_ENABLE?0:1)<<7);
 	//ds
 	analog_write(areg_gpio_pc_ds, 	(PC0_DATA_STRENGTH<<0) 	| (PC1_DATA_STRENGTH<<1)  | (PC2_DATA_STRENGTH<<2)	| (PC3_DATA_STRENGTH<<3) |
 									(PC4_DATA_STRENGTH<<4)	| (PC5_DATA_STRENGTH<<5)  | (PC6_DATA_STRENGTH<<6)	| (PC7_DATA_STRENGTH<<7) );
-
 	reg_gpio_pc_gpio =
 		(PC0_FUNC==AS_GPIO ? BIT(0):0)	| (PC1_FUNC==AS_GPIO ? BIT(1):0)| (PC2_FUNC==AS_GPIO ? BIT(2):0)| (PC3_FUNC==AS_GPIO ? BIT(3):0) |
 		(PC4_FUNC==AS_GPIO ? BIT(4):0)	| (PC5_FUNC==AS_GPIO ? BIT(5):0)| (PC6_FUNC==AS_GPIO ? BIT(6):0)| (PC7_FUNC==AS_GPIO ? BIT(7):0);
@@ -812,11 +809,10 @@ static inline void gpio_init(int anaRes_init_en)
 		(PD0_FUNC==AS_GPIO ? BIT(16):0)	| (PD1_FUNC==AS_GPIO ? BIT(17):0)| (PD2_FUNC==AS_GPIO ? BIT(18):0)| (PD3_FUNC==AS_GPIO ? BIT(19):0) |
 		(PD4_FUNC==AS_GPIO ? BIT(20):0)	| (PD5_FUNC==AS_GPIO ? BIT(21):0)| (PD6_FUNC==AS_GPIO ? BIT(22):0)| (PD7_FUNC==AS_GPIO ? BIT(23):0);
 
-
 	//PE group
 	reg_gpio_pe_ie = (PE0_INPUT_ENABLE<<0)	| (PE1_INPUT_ENABLE<<1)| (PE2_INPUT_ENABLE<<2)	| (PE3_INPUT_ENABLE<<3);
-	reg_gpio_pe_oen = ((PE0_OUTPUT_ENABLE?0:1)<<0)	| ((PE1_OUTPUT_ENABLE?0:1)<<1) | ((PE2_OUTPUT_ENABLE?0:1)<<2)	| ((PE3_OUTPUT_ENABLE?0:1)<<3);
 	reg_gpio_pe_out = (PE0_DATA_OUT<<0)	| (PE1_DATA_OUT<<1)	| (PE2_DATA_OUT<<2)	| (PE3_DATA_OUT<<3);
+	reg_gpio_pe_oen = ((PE0_OUTPUT_ENABLE?0:1)<<0)	| ((PE1_OUTPUT_ENABLE?0:1)<<1) | ((PE2_OUTPUT_ENABLE?0:1)<<2)	| ((PE3_OUTPUT_ENABLE?0:1)<<3);
 	reg_gpio_pe_ds = (PE0_DATA_STRENGTH<<0)	| (PE1_DATA_STRENGTH<<1)	| (PE2_DATA_STRENGTH<<2)	| (PE3_DATA_STRENGTH<<3);
 	reg_gpio_pe_gpio = (PE0_FUNC==AS_GPIO ? BIT(0):0)	| (PE1_FUNC==AS_GPIO ? BIT(1):0)| (PE2_FUNC==AS_GPIO ? BIT(2):0)| (PE3_FUNC==AS_GPIO ? BIT(3):0);
 

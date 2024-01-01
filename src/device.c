@@ -481,7 +481,7 @@ void user_zb_init(bool isRetention)
 			ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
 			ZCL_TEMPERATURE_MEASUREMENT_ATTRID_MEASUREDVALUE,
 			30,
-			120,
+			180,
 			(u8 *)&reportableChange[2]
 		);
         reportableChange[3] = 50;
@@ -491,7 +491,7 @@ void user_zb_init(bool isRetention)
 			ZCL_CLUSTER_MS_RELATIVE_HUMIDITY,
 			ZCL_RELATIVE_HUMIDITY_ATTRID_MEASUREDVALUE,
 			30,
-			120,
+			180,
 			(u8 *)&reportableChange[3]
 		);
 

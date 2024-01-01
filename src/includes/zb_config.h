@@ -65,9 +65,10 @@
  */
 
 /*******************************ZOO Default Configuration Attribute Definitions***********************************************/
+//Permit join duration, 0x00 - disable join, 0xff - join is allowed forever
 #define ZDO_PERMIT_JOIN_DURATION					0
 
-#define POLL_RATE_QUARTERSECONDS					250 //1 qs = 250 ms
+#define POLL_RATE_QUARTERSECONDS					250 // 1 qs = 250 ms
 
 #define POLL_NO_DATA_MAX_COUNT						3
 
@@ -81,16 +82,24 @@
 #define ZDO_NWK_TIME_BTWN_SCANS 					100
 
 //The value in milliseconds, for the device to request indirect transmission messages from the parent.
-#define ZDO_NWK_INDIRECT_POLL_RATE					4 * POLL_RATE_QUARTERSECONDS//1000 ms
+#define ZDO_NWK_INDIRECT_POLL_RATE					4 * POLL_RATE_QUARTERSECONDS //1000 ms
 
 //Contents of the link retry threshold for parent link.
 #define	ZDO_MAX_PARENT_THRESHOLD_RETRY				5
 
 //Contents of the rejoin interval in seconds
+//The number of rejoin attempts during the fast rejoin.
 #define ZDO_REJOIN_TIMES							5
+//The amount of time between each rejoin attempt while the device is in Fast Rejoin mode, in seconds.
+//If 0, config_rejoin_times will be ignored and only one Fast Rejoin will be performed.
 #define	ZDO_REJOIN_DURATION							6
+//The amount of time to sleep after the Fast Rejoin attempts before performing the next attempt, in seconds.
+//If 0 means no Rejoin backoff/retry.
 #define ZDO_REJOIN_BACKOFF_TIME						30
+//Upper limit of the config_rejoin_backoff_time.
 #define ZDO_MAX_REJOIN_BACKOFF_TIME					90
+//The number of iterations of the Fast Rejoin backoff, in times.
+//If 0 means do not reset the backoff duration.
 #define ZDO_REJOIN_BACKOFF_ITERATION				8
 /******************************************************************************************************************************/
 
