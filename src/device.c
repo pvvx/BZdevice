@@ -159,7 +159,7 @@ B2.0 | 0x3C         | 0x44   (SHT4x)  | Test   original string HW
         g_zcl_basicAttrs.hwVersion = 19;
     }
 #else // BOARD != BOARD_LYWSD03MMC
-#if SENSOR_TYPE == SENSOR_SHTXX
+#if SENSOR_TYPE == SENSOR_SHTC3_4X
     if (sensor_i2c_addr == (SHTC3_I2C_ADDR << 1)) {
 #if USE_SENSOR_ID
     	g_zcl_basicAttrs.hwVersion = 2 + (sensor_id == 0);
@@ -170,6 +170,9 @@ B2.0 | 0x3C         | 0x44   (SHT4x)  | Test   original string HW
     	g_zcl_basicAttrs.hwVersion = 1;
 
 #elif SENSOR_TYPE == SENSOR_CHT8305
+    if(sensor_i2c_addr != 0)
+    	g_zcl_basicAttrs.hwVersion = 1 + ((sensor_i2c_addr >> 1) & 3);
+#elif SENSOR_TYPE == SENSOR_CHT30
     if(sensor_i2c_addr != 0)
     	g_zcl_basicAttrs.hwVersion = 1 + ((sensor_i2c_addr >> 1) & 3);
 
@@ -413,10 +416,9 @@ void sensorDeviceSysException(void)
  *
  * @return  None
  */
-u16 reportableChange[4];
-
 void user_zb_init(bool isRetention)
 {
+	u32 reportableChange;
 #if PA_ENABLE
 	rf_paInit(PA_TX, PA_RX);
 #endif
@@ -454,7 +456,7 @@ void user_zb_init(bool isRetention)
 			g_bdbCommissionSetting.linkKey.tcLinkKey.key = g_sensorAppCtx.tcLinkKey.key;
 		}
 		/* Set default reporting configuration */
-		reportableChange[0] = 0;
+		reportableChange = 0;
         bdb_defaultReportingCfg(
 			SENSOR_DEVICE_ENDPOINT,
 			HA_PROFILE_ID,
@@ -462,9 +464,9 @@ void user_zb_init(bool isRetention)
 			ZCL_ATTRID_BATTERY_VOLTAGE,
 			360,
 			3600,
-			(u8 *)&reportableChange[0]
+			(u8 *)&reportableChange
 		);
-        reportableChange[1] = 0;
+        reportableChange = 0;
         bdb_defaultReportingCfg(
 			SENSOR_DEVICE_ENDPOINT,
 			HA_PROFILE_ID,
@@ -472,9 +474,9 @@ void user_zb_init(bool isRetention)
 			ZCL_ATTRID_BATTERY_PERCENTAGE_REMAINING,
 			360,
 			3600,
-			(u8 *)&reportableChange[1]
+			(u8 *)&reportableChange
 		);
-        reportableChange[2] = 10;
+        reportableChange = 10;
 		bdb_defaultReportingCfg(
 			SENSOR_DEVICE_ENDPOINT,
 			HA_PROFILE_ID,
@@ -482,9 +484,9 @@ void user_zb_init(bool isRetention)
 			ZCL_TEMPERATURE_MEASUREMENT_ATTRID_MEASUREDVALUE,
 			30,
 			180,
-			(u8 *)&reportableChange[2]
+			(u8 *)&reportableChange
 		);
-        reportableChange[3] = 50;
+        reportableChange = 50;
 		bdb_defaultReportingCfg(
 			SENSOR_DEVICE_ENDPOINT,
 			HA_PROFILE_ID,
@@ -492,7 +494,7 @@ void user_zb_init(bool isRetention)
 			ZCL_RELATIVE_HUMIDITY_ATTRID_MEASUREDVALUE,
 			30,
 			180,
-			(u8 *)&reportableChange[3]
+			(u8 *)&reportableChange
 		);
 
 //		bdb_findBindMatchClusterSet(FIND_AND_BIND_CLUSTER_NUM, bdb_findBindClusterList);

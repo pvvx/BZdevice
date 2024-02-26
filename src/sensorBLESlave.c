@@ -162,6 +162,9 @@ static const u8 my_ManStr[] = {"MiaoMiaoCe Technology (Beijing) Co., Ltd."};
 #elif BOARD == BOARD_TS0201_TZ3000
 static const u8 my_ModelStr[] = {"TS0201"};
 static const u8 my_ManStr[] = {"Tuya"};
+#elif BOARD == BOARD_TH03Z
+static const u8 my_ModelStr[] = {"TH03Z"};
+static const u8 my_ManStr[] = {"Tuya"};
 #else
 #error "DEVICE_TYPE = ?"
 #endif
@@ -643,6 +646,10 @@ void user_ble_normal_init(void){
 	tbl_scanRsp.name[0] = 'T';
 	tbl_scanRsp.name[1] = 'H';
 	tbl_scanRsp.name[2] = 'S';
+#elif BOARD == BOARD_TH03Z
+	tbl_scanRsp.name[0] = 'T';
+	tbl_scanRsp.name[1] = 'H';
+	tbl_scanRsp.name[2] = 'Z';
 #else
 #error "DEVICE_TYPE = ?"
 #endif

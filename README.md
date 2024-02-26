@@ -3,18 +3,17 @@ Experimental firmware for devices on the TLSR825x chip operating simultaneously 
 
 It is not recommended to use experimental versions for those who do not have the ability to reprogram the device using wired connections!
 
-Currently supported devices: [LYWSD03MMC](https://pvvx.github.io/ATC_MiThermometer/), [CGDK2](https://pvvx.github.io/CGDK2/), [MHO-C122](https://pvvx.github.io/MHO_C122), [MHO-C401N](https://pvvx.github.io/MHO_C401N), [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000/)
+Currently supported devices: [LYWSD03MMC](https://pvvx.github.io/ATC_MiThermometer/), [CGDK2](https://pvvx.github.io/CGDK2/), [MHO-C122](https://pvvx.github.io/MHO_C122), [MHO-C401N](https://pvvx.github.io/MHO_C401N), [TS0201_TZ3000](https://pvvx.github.io/TS0201_TZ3000/), [TH03Z](https://pvvx.github.io/TH03Z/)
 
 In developing: [MHO-C401(old)](https://pvvx.github.io/MHO_C401), [MJWSD05MMC](https://pvvx.github.io/MJWSD05MMC), [CGG1-M](https://pvvx.github.io/CGG1), [TS0202_TZ3000](https://pvvx.github.io/TS0202_TZ3000)
-
 
 ## Firmware supports:
 
 * Zigbee OTA
 * BLE OTA
-* ZigBee Touchlink commissioning
 * BLE advertising BTHome v2
 * Screen display configuration
+* Setting offsets sensors
 
 Average consumption for Xiaomi LYWSD03MMC B1.4 - 18 µA
 
@@ -24,8 +23,35 @@ Average consumption for Xiaomi LYWSD03MMC B1.4 - 18 µA
 
 ![image](https://github.com/pvvx/BZdevice/assets/12629515/f0b2662c-ad69-42fe-9d2f-96fefca9850f)
 
-
 ![image](https://github.com/pvvx/BZdevice/assets/12629515/7a384562-41bf-4311-9356-7d7ccf695b19)
+
+## Action of the button
+
+Action of the button (or contact "reset" to "gnd" for LYWSD03MMC):
+
+* Short press - send temperature, humidity and battery data.
+* Hold for 2 seconds - Switches temperature between Celsius and Fahrenheit. The change will immediately appear on the screen.
+* Hold for 7 seconds - reset the binding and restart. The screen will briefly display “---” (for devices using a screen with fast refresh capabilities, not E-Ink). After restarting, the thermometer will wait forever for registration. Jerking the battery won't change anything.
+
+## Display decimal places for temperature, humidity and battery charge in ZHA
+
+[ZHA patch for more precision display of data for all Zigbee devices.](https://github.com/pvvx/ZigbeeTLc/issues/6)
+
+## Indication on LCD screen
+
+A solid "BT" icon indicates a connection loss or the thermometer is not registered with the Zigbee network.
+
+The flashing "BT" icon is called by the "identify" command.
+
+[ZHA: Switch temperature between Celsius and Fahrenheit, Show smiley, Comfort parameters](https://github.com/pvvx/ZigbeeTLc/issues/28)
+
+## Setting offsets for temperature and humidity.
+
+[ZHA: Setting offsets for temperature and humidity](https://github.com/pvvx/ZigbeeTLc/issues/30)
+
+## Z2M
+
+Use [External convertors](https://github.com/pvvx/ZigbeeTLc/tree/master/z2m)
 
 ## Reports configurations in ZHA:
 
@@ -45,7 +71,7 @@ Zigbee transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/d
 
 BLE transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/511335e5-dd00-4bbd-983c-233976df4c7a)
 
-## OTA
+## BLE OTA
 
 For those not afraid to experiment:
 
@@ -80,5 +106,7 @@ Sample: "1141-020a-01103001-Z03MMC.zigbee"
 | 0x0210 |  Water Tank sensors |
 | 0x0211 |  TS0201-TZ3000 |
 | 0x0212 |  TS0202-TZ3000 |
+| 0x0216 |  TH03Z |
 
+* To restore to BLE, use the Zigbee OTA file with the same number device from: https://github.com/pvvx/ATC_MiThermometer/tree/master/zigbee_ota
 
