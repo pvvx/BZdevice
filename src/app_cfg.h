@@ -62,11 +62,11 @@ extern "C" {
 /* Board include */
 #if defined(BOARD)
 //#if (BOARD == BOARD_LYWSD03MMC)
-	#include "board_lyws03mmc.h"
+#include "board_lyws03mmc.h"
 //#elif (BOARD == BOARD_CGDK2)
-	#include "board_cgdk2.h"
+#include "board_cgdk2.h"
 //#elif BOARD == BOARD_MHO_C122
-	#include "board_mho_c122.h"
+#include "board_mho_c122.h"
 //#elif BOARD == BOARD_MHO_C401N
 #include "board_mho_c401n.h"
 //#elif BOARD == BOARD_TS0201_TZ3000
@@ -78,6 +78,10 @@ extern "C" {
 //#endif
 #else
 #error "Define BOARD!"
+#endif
+
+#ifndef ZIGBEE_TUYA_OTA
+#define ZIGBEE_TUYA_OTA 	0
 #endif
 
 #define VOLTAGE_DETECT_ADC_PIN GPIO_VBAT
@@ -115,15 +119,15 @@ extern "C" {
  * ZCL cluster support setting
  */
 /* BDB */
-#define TOUCHLINK_SUPPORT							1
-#define FIND_AND_BIND_SUPPORT						1
+#define TOUCHLINK_SUPPORT							0
+#define FIND_AND_BIND_SUPPORT						0
 #define ZCL_POWER_CFG_SUPPORT						1
 //#define ZCL_IAS_ZONE_SUPPORT						1
 #define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			1
 #define ZCL_RELATIVE_HUMIDITY_SUPPORT   			1
 #define ZCL_THERMOSTAT_UI_CFG_SUPPORT				1 // USE_DISPLAY
 #define ZCL_POLL_CTRL_SUPPORT						1
-#define ZCL_GROUP_SUPPORT							1
+#define ZCL_GROUP_SUPPORT							0
 #define ZCL_OTA_SUPPORT								1
 #define REJOIN_FAILURE_TIMER						1
 #if TOUCHLINK_SUPPORT
