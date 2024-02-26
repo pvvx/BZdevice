@@ -103,9 +103,9 @@ Sample: "1141-020a-01103001-Z03MMC.zigbee"
 | 0x0209 |  MJWSD05MMC |
 | 0x020A |  LYWSD03MMC |
 | 0x020B |  MHO-C122 |
-| 0x0210 |  Water Tank sensors |
+| 0x0210 |  TB-03F-Kit (DIY) |
 | 0x0211 |  TS0201-TZ3000 |
-| 0x0212 |  TS0202-TZ3000 |
+| 0x0212 |  Water Tank sensors (not published) |
 | 0x0216 |  TH03Z |
 
 * To restore to BLE, use the Zigbee OTA file with the same number device from: https://github.com/pvvx/ATC_MiThermometer/tree/master/zigbee_ota
