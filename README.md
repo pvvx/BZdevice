@@ -75,7 +75,7 @@ BLE transmission: ![image](https://github.com/pvvx/BZdevice/assets/12629515/5113
 
 For those not afraid to experiment:
 
-* The firmware is carried out from the [BLE version](https://github.com/pvvx/ATC_MiThermometer) by downloading a [*.zigbee or *.bin](https://github.com/pvvx/BZdevice/tree/master/bin) file  in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). In the file name input field, paste https://github.com/pvvx/BZdevice/raw/master/bin/1141-020a-01113001-Z03MMC.zigbee (for LYWSD03MMC)
+* The firmware is carried out from the [BLE version](https://github.com/pvvx/ATC_MiThermometer) by downloading a [*.zigbee or *.bin](https://github.com/pvvx/BZdevice/tree/master/bin) file  in [TelinkMiFlasher.html](https://pvvx.github.io/ATC_MiThermometer/TelinkMiFlasher.html). In the file name input field, paste `https://github.com/pvvx/BZdevice/raw/master/bin/1141-020a-02053001-Z03MMC.zigbee` (for LYWSD03MMC)
 * For BLE OTA, when this version is already working, [TelinkOTA.html](https://pvvx.github.io/ATC_MiThermometer/TelinkOTA.html) is used. 
 
 ## Zigbee OTA
