@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define RF_TX_POWER_DEF		RF_POWER_P3p01dBm
+#define RF_TX_POWER_DEF		RF_POWER_INDEX_P1p99dBm
 
 // TLSR8251F512ET24
 // GPIO_PA5 - used EPD_BUSY
@@ -35,6 +35,7 @@ extern "C" {
 #define	USE_DISPLAY			4
 #define USE_EPD				50 // while(task_lcd()) pm_wait_ms(50 ms);
 #define LCD_BUF_SIZE		16
+#define LCD_INIT_DELAY()
 
 #define EPD_RST2			GPIO_PB7 // should be high
 #define PULL_WAKEUP_SRC_PB7 PM_PIN_PULLUP_1M

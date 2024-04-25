@@ -176,15 +176,17 @@ static s32 keyTimerCb(void *arg)
 				g_sensorAppCtx.keyPressedTime = clock_time();
 				tl_bdbReset2FN();
 #if	USE_DISPLAY
+				if(!g_zcl_thermostatUICfgAttrs.display_off) {
 #ifdef USE_EPD
-				while(task_lcd())
-					pm_wait_ms(USE_EPD);
+					while(task_lcd())
+						pm_wait_ms(USE_EPD);
 #endif
-				show_blink_screen();
+					show_blink_screen();
 #ifdef USE_EPD
-				while(task_lcd())
-					pm_wait_ms(USE_EPD);
+					while(task_lcd())
+						pm_wait_ms(USE_EPD);
 #endif
+				}
 #else
 				light_on();
 #endif // USE_DISPLAY

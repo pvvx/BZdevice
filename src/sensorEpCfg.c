@@ -6,6 +6,7 @@
 #include "zcl_relative_humidity.h"
 #include "zcl_thermostat_ui_cfg.h"
 #include "device.h"
+#include "lcd.h"
 
 /**********************************************************************
  * LOCAL CONSTANTS
@@ -72,6 +73,9 @@ const u16 sensorDevice_inClusterList[] =
 #ifdef ZCL_POLL_CTRL
 	ZCL_CLUSTER_GEN_POLL_CONTROL,
 #endif
+#ifdef ZCL_THERMOSTAT_UI_CFG
+	ZCL_CLUSTER_HAVC_USER_INTERFACE_CONFIG,
+#endif
 #ifdef ZCL_TEMPERATURE_MEASUREMENT
 	ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
 #endif
@@ -94,9 +98,7 @@ const u16 sensorDevice_outClusterList[] =
 #ifdef ZCL_OTA
     ZCL_CLUSTER_OTA,
 #endif
-#ifdef ZCL_THERMOSTAT_UI_CFG
-	ZCL_CLUSTER_HAVC_USER_INTERFACE_CONFIG
-#endif
+
 };
 
 /**
@@ -146,7 +148,11 @@ const zclAttrInfo_t basic_attrTbl[] =
 	{ ZCL_ATTRID_BASIC_APP_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.appVersion},
 	{ ZCL_ATTRID_BASIC_STACK_VER,    		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.stackVersion},
 	{ ZCL_ATTRID_BASIC_HW_VER,       		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.hwVersion},
-	{ ZCL_ATTRID_BASIC_MFR_NAME,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.manuName},
+#if USE_CHG_NAME
+	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE,	(u8*)g_zcl_basicAttrs.modelId},
+#else
+	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,						(u8*)g_zcl_basicAttrs.modelId},
+#endif
 	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
 	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
 	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
@@ -271,11 +277,13 @@ const zcl_thermostatUICfgAttr_t g_zcl_thermostatUICfgDefault = {
 		.humi_offset = 0,
 #if	USE_DISPLAY
 		.TemperatureDisplayMode = 0,
+#if SHOW_SMILEY
 		.showSmiley = 0,
-		.temp_comfort_min = 20,
-		.temp_comfort_max = 25,
-		.humi_comfort_min = 40,
-		.humi_comfort_max = 60
+		.temp_comfort_min = 2000,  //  параметры ГОСТ, СНиП
+		.temp_comfort_max = 2500,
+		.humi_comfort_min = 4000,
+		.humi_comfort_max = 6000
+#endif
 #endif
 };
 
@@ -283,17 +291,24 @@ const zclAttrInfo_t thermostat_ui_cfg_attrTbl[] =
 {
 #if	USE_DISPLAY
 	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_TEMPERATUREDISPLAYMODE,       ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.TemperatureDisplayMode },
+#endif
+#if SHOW_SMILEY
 	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_SCHEDULEPROGRAMMINGVISIBILITY,   ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.showSmiley },
 #endif
-	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_OFFSET_TEMP,   ZCL_DATA_TYPE_INT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.temp_offset },
-	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_OFFSET_HUMI,   ZCL_DATA_TYPE_INT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.humi_offset },
-#if	USE_DISPLAY
-	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MIN_T,   ZCL_DATA_TYPE_INT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.temp_comfort_min },
-	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MAX_T,   ZCL_DATA_TYPE_INT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.temp_comfort_max },
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_OFFSET_TEMP,   ZCL_DATA_TYPE_INT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.temp_offset },
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_OFFSET_HUMI,   ZCL_DATA_TYPE_INT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.humi_offset },
+#if	SHOW_SMILEY
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MIN_T,   ZCL_DATA_TYPE_INT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.temp_comfort_min },
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MAX_T,   ZCL_DATA_TYPE_INT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.temp_comfort_max },
 
-	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MIN_H,   ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.humi_comfort_min },
-	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MAX_H,   ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.humi_comfort_max },
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MIN_H,   ZCL_DATA_TYPE_UINT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.humi_comfort_min },
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_COMFORT_MAX_H,   ZCL_DATA_TYPE_UINT16,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.humi_comfort_max },
 #endif
+#if	USE_DISPLAY
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_DISPLAY_OFF,   ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.display_off },
+#endif
+	{ ZCL_THERMOSTAT_UI_CFG_ATTRID_MEASURE_INTERVAL,   ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_thermostatUICfgAttrs.measure_interval },
+
 
 	{ ZCL_ATTRID_GLOBAL_CLUSTER_REVISION, 	ZCL_DATA_TYPE_UINT16,  	ACCESS_CONTROL_READ,  						(u8*)&zcl_attr_global_clusterRevision},
 };
@@ -310,8 +325,8 @@ zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs =
 	.longPollInterval		= READ_SENSOR_TIMER_SEC*4,  //  10 sec
 	.shortPollInterval		= 2, 	// 2 qs
 	.fastPollTimeout		= READ_SENSOR_TIMER_SEC*4,  // 10 sec
-	.chkInIntervalMin		= 2*READ_SENSOR_TIMER_SEC*4, // 0
-	.longPollIntervalMin	= 2*READ_SENSOR_TIMER_SEC*4, // 0
+	.chkInIntervalMin		= 0, // 2*READ_SENSOR_TIMER_SEC*4, // 20 sec
+	.longPollIntervalMin	= 2*READ_SENSOR_TIMER_SEC*4, // 20 sec
 	.fastPollTimeoutMax		= 60*4 // 0
 };
 
@@ -369,6 +384,31 @@ u8 SENSOR_DEVICE_CB_CLUSTER_NUM = (sizeof(g_sensorDeviceClusterList)/sizeof(g_se
 #if NV_ENABLE
 	zcl_thermostatUICfgAttr_t zcl_nv_thermostatUiCfg;
 #endif
+
+#if USE_CHG_NAME
+
+#define FLASH_DEV_NAME_ADDR  0x075000
+static const u8 modelId[] = ZCL_BASIC_MODEL_ID;
+
+void read_dev_name(void) {
+	flash_read_page(FLASH_DEV_NAME_ADDR, ZCL_BASIC_MAX_LENGTH, g_zcl_basicAttrs.modelId);
+	if(g_zcl_basicAttrs.modelId[0] == 0 || g_zcl_basicAttrs.modelId[0] >= ZCL_BASIC_MAX_LENGTH)
+		memcpy(g_zcl_basicAttrs.modelId, modelId, sizeof(modelId));
+}
+
+void save_dev_name(void) {
+	u8 buf[ZCL_BASIC_MAX_LENGTH];
+	if(g_zcl_basicAttrs.modelId[0] == 0 || g_zcl_basicAttrs.modelId[0] >= ZCL_BASIC_MAX_LENGTH)
+		memcpy(g_zcl_basicAttrs.modelId, modelId, sizeof(modelId));
+	flash_read_page(FLASH_DEV_NAME_ADDR, ZCL_BASIC_MAX_LENGTH, buf);
+	if(memcmp(g_zcl_basicAttrs.modelId, buf, g_zcl_basicAttrs.modelId[0] + 1)) {
+		flash_write_status(0, 0);
+		flash_erase_sector(FLASH_DEV_NAME_ADDR);
+		flash_write_page(FLASH_DEV_NAME_ADDR, g_zcl_basicAttrs.modelId[0] + 1, g_zcl_basicAttrs.modelId);
+	}
+}
+
+#endif // USE_CHG_NAME
 /*********************************************************************
  * @fn      zcl_thermostatConfig_save
  *
@@ -385,11 +425,17 @@ nv_sts_t zcl_thermostatConfig_save(void)
 #ifdef ZCL_THERMOSTAT_UI_CFG
 #if NV_ENABLE
 	if(memcmp(&zcl_nv_thermostatUiCfg, &g_zcl_thermostatUICfgAttrs, sizeof(g_zcl_thermostatUICfgAttrs))) {
-		memcpy(&zcl_nv_thermostatUiCfg, &g_zcl_thermostatUICfgAttrs, sizeof(g_zcl_thermostatUICfgAttrs));
-		st = nv_flashReadNew(1, NV_MODULE_ZCL,  NV_ITEM_ZCL_THERMOSTAT_UI_CFG, sizeof(zcl_thermostatUICfgAttr_t), (u8*)&zcl_nv_thermostatUiCfg);
-#if SHOW_SMILEY
-		set_comfort();
+#if USE_DISPLAY
+		if(zcl_nv_thermostatUiCfg.display_off != g_zcl_thermostatUICfgAttrs.display_off) {
+			init_lcd(); // show_blink_screen();
+		}
 #endif
+		memcpy(&zcl_nv_thermostatUiCfg, &g_zcl_thermostatUICfgAttrs, sizeof(g_zcl_thermostatUICfgAttrs));
+		if(g_zcl_thermostatUICfgAttrs.measure_interval < READ_SENSOR_TIMER_MIN_SEC)
+			g_zcl_thermostatUICfgAttrs.measure_interval = READ_SENSOR_TIMER_SEC;
+		g_sensorAppCtx.measure_interval = (g_zcl_thermostatUICfgAttrs.measure_interval * CLOCK_16M_SYS_TIMER_CLK_1S) - 25*CLOCK_16M_SYS_TIMER_CLK_1MS;
+		zb_setPollRate(DEFAULT_POLL_RATE);
+		st = nv_flashWriteNew(1, NV_MODULE_ZCL,  NV_ITEM_ZCL_THERMOSTAT_UI_CFG, sizeof(zcl_thermostatUICfgAttr_t), (u8*)&zcl_nv_thermostatUiCfg);
 	}
 #else
 	st = NV_ENABLE_PROTECT_ERROR;
@@ -420,9 +466,15 @@ nv_sts_t zcl_thermostatConfig_restore(void)
 	} else {
 		memcpy(&g_zcl_thermostatUICfgAttrs, &g_zcl_thermostatUICfgDefault, sizeof(g_zcl_thermostatUICfgAttrs));
 	}
-#if SHOW_SMILEY
-	set_comfort();
+	if(g_zcl_thermostatUICfgAttrs.measure_interval < READ_SENSOR_TIMER_MIN_SEC)
+		g_zcl_thermostatUICfgAttrs.measure_interval = READ_SENSOR_TIMER_SEC;
+	g_sensorAppCtx.measure_interval = (g_zcl_thermostatUICfgAttrs.measure_interval * CLOCK_16M_SYS_TIMER_CLK_1S) - 25*CLOCK_16M_SYS_TIMER_CLK_1MS;
+#if USE_DISPLAY
+	if(g_zcl_thermostatUICfgAttrs.display_off) {
+		init_lcd(); // show_blink_screen();
+	}
 #endif
+
 #else
 	st = NV_ENABLE_PROTECT_ERROR;
 #endif

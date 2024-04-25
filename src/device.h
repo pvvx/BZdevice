@@ -36,6 +36,7 @@ typedef struct{
 	u32 secTimeTik;
 	u32 keyPressedTime;
 	u32 readSensorTime; // read sensor timer (tik)
+	u32 measure_interval;
 	u16 reportupsec; // report add (sec)
 
 	u16 ledOnTime;
@@ -110,16 +111,18 @@ typedef struct {
  *  @brief Defined for thermostat UI config cluster attributes
  */
 typedef struct {
-	s8 temp_offset;
-	s8 humi_offset;
+	s16 temp_offset;
+	s16 humi_offset;
 #if	USE_DISPLAY
+	s16 temp_comfort_min;
+	s16 temp_comfort_max;
+	u16 humi_comfort_min;
+	u16 humi_comfort_max;
 	u8 TemperatureDisplayMode;
 	u8 showSmiley;
-	s8 temp_comfort_min;
-	s8 temp_comfort_max;
-	u8 humi_comfort_min;
-	u8 humi_comfort_max;
+	u8 display_off;
 #endif
+	u8 measure_interval;
 }zcl_thermostatUICfgAttr_t;
 
 

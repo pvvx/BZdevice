@@ -11,7 +11,7 @@ OTA_MAGIC = b'\x5d\x02'
 def main(args):
     assert args.input_file != args.output
 
-    with (open(args.input_file, 'rb') as bin_file):
+    with (open(args.input_file, 'rb')) as bin_file:
         bin_file.seek(0, 0)
         firmware = bytearray(bin_file.read(-1))
         if firmware[6:8] != OTA_MAGIC:
@@ -34,7 +34,7 @@ def main(args):
         manufacturer_code = int.from_bytes(firmware[18:20], byteorder='little')
         image_type = int.from_bytes(firmware[20:22], byteorder='little')
         file_version = args.set_version or int.from_bytes(firmware[2:6], byteorder='little')
-        hs = str.encode('Telink OTA BLE device')
+        hs = str.encode('OTA ZigbeeTLc device')
         ota_hdr = ota_hdr_s.pack(
             0xbeef11e,
             0x100,  # header version is 0x0100

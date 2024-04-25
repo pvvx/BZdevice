@@ -1,0 +1,50 @@
+[
+    {
+        "fileVersion": 33959937,
+        "fileSize": 159346,
+        "manufacturerCode": 4417,
+        "imageType": 518,
+        "sha512": "d0fefae776e269cb08e27e1ba122e16d4e903c100a73ac7611965b985ccd95056d0e47d80d337374727311ffa45affeab352e16acd2632b7a75b75fd2edcb9e1",
+        "url": "https://github.com/pvvx/BZdevice/raw/master/bin/1141-0206-02063001-ZCGDK2.zigbee"
+    },
+    {
+        "fileVersion": 33959937,
+        "fileSize": 158530,
+        "manufacturerCode": 4417,
+        "imageType": 520,
+        "sha512": "141a9320c0dc4181804904146cae167bf478978c07f050eaaa6de0e363b8f2c920333acbaeea4c8b5739845ab12b5580b710e25702d2be0d42fc57818ea363b3",
+        "url": "https://github.com/pvvx/BZdevice/raw/master/bin/1141-0208-02063001-ZMHOC401N.zigbee"
+    },
+    {
+        "fileVersion": 33959937,
+        "fileSize": 158562,
+        "manufacturerCode": 4417,
+        "imageType": 522,
+        "sha512": "61cccaf7577258cab8467ce45a7d4aeda01807f6d7525817c49abd7cafa336a6792c38cf82080c36da2756ff62c89c99986ebe49401943d61c34abdf381b06ea",
+        "url": "https://github.com/pvvx/BZdevice/raw/master/bin/1141-020a-02063001-Z03MMC.zigbee"
+    },
+    {
+        "fileVersion": 33959937,
+        "fileSize": 158754,
+        "manufacturerCode": 4417,
+        "imageType": 523,
+        "sha512": "b0f5bd67a902f299ea8e0d02e24589206989c40ccdc1dc7ebe23f59c9efd87a9330ffc71c1b61887bbdc4d224c5c8cdf69a19deabc4b5a5ecf2935e97b959230",
+        "url": "https://github.com/pvvx/BZdevice/raw/master/bin/1141-020b-02063001-ZMHOC122.zigbee"
+    },
+    {
+        "fileVersion": 33959937,
+        "fileSize": 156146,
+        "manufacturerCode": 4417,
+        "imageType": 529,
+        "sha512": "d398b6e10fd807ca62cd2c94588ea10378929023230a9af854b997caa9176b9fd9d64525f60543532b6b46a9b62174b98b3c1e328d7bafedeca6cd43d6ddd941",
+        "url": "https://github.com/pvvx/BZdevice/raw/master/bin/1141-0211-02063001-ZTS0201Z3000.zigbee"
+    },
+    {
+        "fileVersion": 33959937,
+        "fileSize": 156098,
+        "manufacturerCode": 4417,
+        "imageType": 534,
+        "sha512": "7f21a87508c11e01bbe489d284f50b6beee526b8ec6a253961efcc65bc2e8f8ac6355d5130c15b9a0a5ce13a5d777d97ec6eae16ad6c35a698d1aea18ea526d8",
+        "url": "https://github.com/pvvx/BZdevice/raw/master/bin/1141-0216-02063001-ZTH03Z.zigbee"
+    }
+]

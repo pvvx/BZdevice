@@ -1,4 +1,4 @@
-@set SWVER=_v0205
+@set SWVER=_v0206
 @del /Q .\bin
 wsl make -s clean
 wsl make -s VERSION_BIN=%SWVER% PROJECT_NAME=Z03MMC POJECT_DEF="-DBOARD=BOARD_LYWSD03MMC"
@@ -11,7 +11,7 @@ wsl make -s VERSION_BIN=%SWVER% PROJECT_NAME=ZMHOC122 POJECT_DEF="-DBOARD=BOARD_
 @if not exist "bin\ZMHOC122%SWVER%.bin" goto :error
 wsl make -s clean
 wsl make -s VERSION_BIN=%SWVER% PROJECT_NAME=ZMHOC401N POJECT_DEF="-DBOARD=BOARD_MHO_C401N"
-@if not exist "bin\ZMHOC122%SWVER%.bin" goto :error
+@if not exist "bin\ZMHOC401N%SWVER%.bin" goto :error
 wsl make -s clean
 wsl make -s VERSION_BIN=%SWVER% PROJECT_NAME=ZTS0201Z3000 POJECT_DEF="-DBOARD=BOARD_TS0201_TZ3000"
 @if not exist "bin\ZTS0201Z3000%SWVER%.bin" goto :error

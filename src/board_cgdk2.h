@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#define RF_TX_POWER_DEF		RF_POWER_P3p01dBm
+#define RF_TX_POWER_DEF RF_POWER_INDEX_P1p99dBm
 
 // TLSR8253F512ET32
 // GPIO_PA0 - free, UART_RX, pcb mark "TP3", (Reed Switch, input)
@@ -49,6 +49,7 @@ extern "C" {
 #define SHOW_SMILEY			0
 #define	USE_DISPLAY			2
 #define LCD_BUF_SIZE		18
+#define LCD_INIT_DELAY()
 
 // I2C
 #define I2C_CLOCK			100000 // Hz

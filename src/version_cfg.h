@@ -54,9 +54,9 @@
 #define BOARD_LYWSD03MMC			10
 #define BOARD_MHO_C122				11
 // 12..15 - number used for BLE firmware - https://github.com/pvvx/ATC_MiThermometer
-#define BOARD_TNK					16 // Water tank controller (not yet published at the moment)
+//#define BOARD_TB03F				16 // DIY TB-03F-Kit
 #define BOARD_TS0201_TZ3000			17
-//#define BOARD_TS0202_TZ3000		18
+#define BOARD_TNKS					18 // Water tank controller (not yet published at the moment)
 //#define BOARD_THB2				19 // https://github.com/pvvx/THB2
 //#define BOARD_BTH01				20 // https://github.com/pvvx/THB2
 //#define BOARD_TH05				21 // https://github.com/pvvx/THB2
@@ -68,7 +68,7 @@
 
 /* Board define */
 #ifndef BOARD
-#define BOARD					BOARD_LYWSD03MMC // BOARD_LYWSD03MMC or BOARD_CGDK2 or BOARD_MHO_C122 or BOARD_MHO_C401N or BOARD_TS0201_TZ3000
+#define BOARD					BOARD_MHO_C401N // BOARD_LYWSD03MMC or BOARD_CGDK2 or BOARD_MHO_C122 or BOARD_MHO_C401N or BOARD_TS0201_TZ3000
 #endif
 
 /* Chip IDs */
@@ -94,7 +94,7 @@
 #endif
 
 #define APP_RELEASE				0x02	//BCD app release "0.2"
-#define APP_BUILD				0x05	//BCD app build "0.3"
+#define APP_BUILD				0x06	//BCD app build "0.3"
 #define STACK_RELEASE			0x30	//BCD stack release 3.0
 #define STACK_BUILD				0x01	//BCD stack build 01
 

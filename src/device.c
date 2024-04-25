@@ -172,10 +172,11 @@ B2.0 | 0x3C         | 0x44   (SHT4x)  | Test   original string HW
 #elif SENSOR_TYPE == SENSOR_CHT8305
     if(sensor_i2c_addr != 0)
     	g_zcl_basicAttrs.hwVersion = 1 + ((sensor_i2c_addr >> 1) & 3);
-#elif SENSOR_TYPE == SENSOR_CHT30
+#elif SENSOR_TYPE == SENSOR_SHT30
     if(sensor_i2c_addr != 0)
     	g_zcl_basicAttrs.hwVersion = 1 + ((sensor_i2c_addr >> 1) & 3);
-
+#else
+    g_zcl_basicAttrs.hwVersion = 1;
 #endif // SENSOR_TYPE
 #endif
 }
@@ -292,11 +293,15 @@ void read_sensor_and_save(void) {
  */
 void user_app_init(void)
 {
+	populate_hw_version();
+#if ZCL_THERMOSTAT_UI_CFG_SUPPORT
+	zcl_thermostatConfig_restore();
+#endif
 #if	USE_DISPLAY
+	LCD_INIT_DELAY();
 	init_lcd();
 #endif
 	init_sensor();
-	populate_hw_version();
 #if ZCL_POLL_CTRL_SUPPORT
 	af_powerDescPowerModeUpdate(POWER_MODE_RECEIVER_COMES_PERIODICALLY);
 #else
@@ -308,9 +313,7 @@ void user_app_init(void)
 
 	/* Register endPoint */
 	af_endpointRegister(SENSOR_DEVICE_ENDPOINT, (af_simple_descriptor_t *)&sensorDevice_simpleDesc, zcl_rx_handler, NULL);
-#if ZCL_THERMOSTAT_UI_CFG_SUPPORT
-	zcl_thermostatConfig_restore();
-#endif
+
 	zcl_reportingTabInit();
 
 	/* Register ZCL specific cluster information */

@@ -86,9 +86,6 @@ extern "C" {
 
 #define VOLTAGE_DETECT_ADC_PIN GPIO_VBAT
 
-#define READ_SENSOR_TIMER_SEC 	10 // second
-#define READ_SENSOR_TIMER_MS 	(READ_SENSOR_TIMER_SEC*1000) // msecond
-
 /* Voltage detect module */
 /* If VOLTAGE_DETECT_ENABLE is set,
  * 1) if MCU_CORE_826x is defined, the DRV_ADC_VBAT_MODE mode is used by default,
@@ -112,7 +109,7 @@ extern "C" {
 #endif
 
 
-#define ZB_DEFAULT_TX_POWER_IDX					RF_POWER_P3p01dBm
+#define ZB_DEFAULT_TX_POWER_IDX					RF_POWER_P1p99dBm // RF_POWER_P3p01dBm
 #define	BLE_DEFAULT_TX_POWER_IDX				RF_POWER_P1p99dBm
 
 /**********************************************************************
@@ -126,7 +123,7 @@ extern "C" {
 #define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			1
 #define ZCL_RELATIVE_HUMIDITY_SUPPORT   			1
 #define ZCL_THERMOSTAT_UI_CFG_SUPPORT				1 // USE_DISPLAY
-#define ZCL_POLL_CTRL_SUPPORT						1
+#define ZCL_POLL_CTRL_SUPPORT						0
 #define ZCL_GROUP_SUPPORT							0
 #define ZCL_OTA_SUPPORT								1
 #define REJOIN_FAILURE_TIMER						1
@@ -153,7 +150,13 @@ extern "C" {
 #define NV_ITEM_ZCL_THERMOSTAT_UI_CFG       (NV_ITEM_APP_GP_TRANS_TABLE + 1)    // see sdk/proj/drivers/drv_nv.h
 #endif
 
-#define DEFAULT_POLL_RATE					(10 * (4 * POLL_RATE_QUARTERSECONDS)) // 10000 ms
+#define READ_SENSOR_TIMER_MIN_SEC 	3 // second
+#define READ_SENSOR_TIMER_SEC 		10 // default, second
+#define DEFAULT_POLL_RATE			(g_zcl_thermostatUICfgAttrs.measure_interval * (4 * POLL_RATE_QUARTERSECONDS)) //   (READ_SENSOR_TIMER_SEC * (4 * POLL_RATE_QUARTERSECONDS)) // msecond
+#define READ_SENSOR_TIMER_MS 		DEFAULT_POLL_RATE // (READ_SENSOR_TIMER_SEC*1000) // msecond
+
+//#define READ_SENSOR_TIMER_MS 	(READ_SENSOR_TIMER_SEC*1000) // msecond
+
 
 /**********************************************************************
  * Stack configuration

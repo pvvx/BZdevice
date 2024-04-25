@@ -91,20 +91,12 @@ static u32	blc_scan_busy_in_adv(u32 ref_tick, u8 index){
 #endif
 
 
-int is_switch_to_ble(void){
-	if((get_ble_next_event_tick() - (clock_time() + ZIGBEE_AFTER_TIME)) > BIT(31) ){
-		return 1;
-	}else{
-		return 0;
-	}
+inline int is_switch_to_ble(void){
+	return get_ble_next_event_tick() - (reg_system_tick + ZIGBEE_AFTER_TIME) > BIT(31);
 }
 
-int is_switch_to_zigbee(void){
-    if((get_ble_next_event_tick() - (clock_time() + BLE_IDLE_TIME)) < BIT(31) ){
-        return 1;
-    }else{
-    	return 0;
-    }
+inline int is_switch_to_zigbee(void){
+	return get_ble_next_event_tick() - (reg_system_tick + BLE_IDLE_TIME) < BIT(31);
 }
 
 
@@ -140,8 +132,10 @@ void concurrent_mode_main_loop(void){
 
 		 blt_sdk_main_loop();
 #if USE_BLE_OTA
-///		 if(ota_is_working)
-///			 return;
+		 if(ota_is_working) {
+			 return;
+//			 while(blt_sdk_main_loop());
+		 }
 #endif
 		 if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN) {
 			 if(batteryValueInCCC && (measured_data.flag & FLG_MEASURE_CC_VBAT)) {

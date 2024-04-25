@@ -11,7 +11,7 @@
 
 #if (BOARD == BOARD_MHO_C122)
 
-#define RF_TX_POWER_DEF		RF_POWER_P3p01dBm
+#define RF_TX_POWER_DEF		RF_POWER_INDEX_P1p99dBm
 
 // TLSR8251F512ET24
 // GPIO_PA5 - DM, free, (TRG)
@@ -37,6 +37,7 @@
 #define	USE_DISPLAY			3
 #define LCD_BUF_SIZE		6
 #define PULL_WAKEUP_SRC_PB6 PM_PIN_PULLUP_10K // LCD ?
+#define LCD_INIT_DELAY()	pm_wait_ms(50)
 
 // I2C
 #define I2C_CLOCK			100000 // Hz
