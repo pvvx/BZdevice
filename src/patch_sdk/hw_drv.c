@@ -27,7 +27,6 @@
 #include "sensors.h"
 #include "ext_ota.h"
 
-extern void drv_calib_adc_verf(void);
 /*
  * system clock configuration
  */
@@ -119,7 +118,10 @@ startup_state_e drv_platform_init(void)
 	/* Get calibration info to improve performance */
 	if(state == SYSTEM_RETENTION_NONE){
 		internalFlashSizeCheck();
+#if USE_READ_ADC_CALIBRATION
+		extern void drv_calib_adc_verf(void);
 		drv_calib_adc_verf();
+#endif
 		battery_detect();
 		random_generator_init();
 #if PM_ENABLE

@@ -84,19 +84,15 @@ extern "C" {
 #define ZIGBEE_TUYA_OTA 	0
 #endif
 
-#define VOLTAGE_DETECT_ADC_PIN GPIO_VBAT
+#define STARTUP_IN_BLE		1
 
 /* Voltage detect module */
-/* If VOLTAGE_DETECT_ENABLE is set,
- * 1) if MCU_CORE_826x is defined, the DRV_ADC_VBAT_MODE mode is used by default,
- * and there is no need to configure the detection IO port;
- * 2) if MCU_CORE_8258 or MCU_CORE_8278 is defined, the DRV_ADC_VBAT_MODE mode is used by default,
- * we need to configure the detection IO port, and the IO must be in a floating state.
- * 3) if MCU_CORE_B91 is defined, the DRV_ADC_BASE_MODE mode is used by default,
- * we need to configure the detection IO port, and the IO must be connected to the target under test,
- * such as VCC.
- */
-#define VOLTAGE_DETECT_ENABLE						0
+#define VOLTAGE_DETECT_ENABLE		0 // =0 !
+#define BATTERY_AVERAGE_COUNT		32 // 16, 32, 64, 128
+#define VOLTAGE_DETECT_ADC_PIN 		GPIO_VBAT
+#define BATTERY_SAFETY_THRESHOLD	2200 // 2.2v
+#define LOW_POWER_SLEEP_TIME		60*1000 // ms
+#define USE_READ_ADC_CALIBRATION	0
 
 /* Watch dog module */
 #define MODULE_WATCHDOG_ENABLE						0
@@ -123,7 +119,7 @@ extern "C" {
 #define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT			1
 #define ZCL_RELATIVE_HUMIDITY_SUPPORT   			1
 #define ZCL_THERMOSTAT_UI_CFG_SUPPORT				1 // USE_DISPLAY
-#define ZCL_POLL_CTRL_SUPPORT						0
+#define ZCL_POLL_CTRL_SUPPORT						1
 #define ZCL_GROUP_SUPPORT							0
 #define ZCL_OTA_SUPPORT								1
 #define REJOIN_FAILURE_TIMER						1
@@ -139,7 +135,6 @@ extern "C" {
 #define USE_FLASH_SERIAL_UID				1
 #define USE_BLE_OTA							ZCL_OTA_SUPPORT
 
-
 // for consistency
 #if ZCL_RELATIVE_HUMIDITY_SUPPORT
 #define ZCL_RELATIVE_HUMIDITY
@@ -147,8 +142,23 @@ extern "C" {
 #endif
 #if ZCL_THERMOSTAT_UI_CFG_SUPPORT
 #define ZCL_THERMOSTAT_UI_CFG
-#define NV_ITEM_ZCL_THERMOSTAT_UI_CFG       (NV_ITEM_APP_GP_TRANS_TABLE + 1)    // see sdk/proj/drivers/drv_nv.h
 #endif
+
+/**********************************************************************
+ * NVM configuration
+ */
+
+#define USE_NV_APP	((APP_RELEASE << 24) | (APP_BUILD << 16) | 0x3B00 | BOARD)	// ID, not change!
+
+typedef enum{
+	NV_ITEM_APP_DEV_VER	= 0x60,
+	NV_ITEM_APP_DEV_NAME,
+	NV_ITEM_APP_MAN_NAME,
+	NV_ITEM_APP_THERMOSTAT_UI_CFG,
+	NV_ITEM_APP_PIR_CFG,
+	NV_ITEM_APP_TRIGGER_UI_CFG,
+} nv_item_app_t;
+
 
 #define READ_SENSOR_TIMER_MIN_SEC 	3 // second
 #define READ_SENSOR_TIMER_SEC 		10 // default, second

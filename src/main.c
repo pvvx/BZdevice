@@ -81,7 +81,7 @@ extern volatile u8 ota_is_working;
 		task_keys();
 #if PM_ENABLE
 		if(loop_cycle) {
-			loop_cycle = 0;
+			loop_cycle--;
 		} else {
 			app_pm_task();
 		}

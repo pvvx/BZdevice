@@ -1,12 +1,13 @@
 
 PROJECT_NAME ?= z03mmc
 VERSION_BIN ?=
+ZNAME?="OTA BZdevice"
 
 TEL_CHIP := $(POJECT_DEF) -DMCU_CORE_8258=1 -DEND_DEVICE=1 -DMCU_STARTUP_8258=1 -D__PROJECT_TL_SWITCH__=1 -DBLE_CONCURRENT_MODE=1 -DBOOT_LOADER_MODE=0 
 
 LIBS := -lble_8258 -ldrivers_8258 -lzb_ed 
 
-PGM_PORT?=COM4
+PGM_PORT?=COM9
 
 PROJECT_PATH ?= .
 SRC_DIR ?= /src
@@ -23,8 +24,6 @@ LS_FLAGS := $(SRC_PATH)/boot.link
 
 OUT_PATH ?=./build
 BIN_PATH ?=./bin
-
-PYTHON ?= python3
 
 OBJ_SRCS :=
 S_SRCS :=
@@ -43,9 +42,11 @@ COMPILEOS = $(shell uname -o)
 LINUX_OS = GNU/Linux
 
 ifeq ($(COMPILEOS),$(LINUX_OS))
+	PYTHON ?= python3
 	CUR_OS := linux
 	TOOLS_PATH := $(TEL_PATH)/tools/linux
 else
+	PYTHON ?= python
 	CUR_OS := windows
 	TOOLS_PATH := $(TEL_PATH)/tools/windows
 endif
@@ -154,7 +155,7 @@ $(BIN_FILE): $(ELF_FILE)
 $(OTA_FILE): $(BIN_FILE)
 	@echo 'Create OTA image'
 	@echo ' '
-	@$(PYTHON) $(MAKE_PATH)/zigbee_ota.py $(BIN_FILE) -p $(BIN_PATH) -n $(PROJECT_NAME)
+	@$(PYTHON) $(MAKE_PATH)/zigbee_ota.py $(BIN_FILE) -p $(BIN_PATH) -n $(PROJECT_NAME) -s $(ZNAME)
 	@echo ' '
 
 sizedummy: $(ELF_FILE)

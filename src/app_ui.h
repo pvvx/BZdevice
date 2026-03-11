@@ -44,6 +44,7 @@ void light_init(void);
 void light_on(void);
 void light_off(void);
 
+void keys_init(void);
 void task_keys(void);
 
 void read_sensor_start(u16 delayTime);

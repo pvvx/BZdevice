@@ -123,7 +123,7 @@ void concurrent_mode_main_loop(void){
 	//return;
 
 	if(CURRENT_SLOT_GET() == DUALMODE_SLOT_BLE){
-		 g_dualModeInfo.bleTaskTick = clock_time();
+//		 g_dualModeInfo.bleTaskTick = clock_time();
 
 		 /*
 		  * ble task
@@ -149,6 +149,7 @@ void concurrent_mode_main_loop(void){
 		 r = drv_disable_irq();
 
 		 if(((get_ble_event_state() && is_switch_to_zigbee()) || APP_BLE_STATE_GET() == BLS_LINK_STATE_IDLE)
+				 && (!g_dualModeInfo.switch_to_ble)
 			 ){
 			 /*
 			  * ready to switch to ZIGBEE mode
@@ -174,7 +175,8 @@ void concurrent_mode_main_loop(void){
 
 		 r = drv_disable_irq();
 
-		 if(!zb_rfTxDoing() && is_switch_to_ble() && APP_BLE_STATE_GET() != BLS_LINK_STATE_IDLE){
+		 if((!zb_rfTxDoing() && is_switch_to_ble() && APP_BLE_STATE_GET() != BLS_LINK_STATE_IDLE)
+				 || g_dualModeInfo.switch_to_ble) {
 			 /*
 			  * ready to switch to BLE mode
 			  *

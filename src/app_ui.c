@@ -203,6 +203,10 @@ static s32 keyTimerCb(void *arg)
 	return -1;
 }
 
+void keys_init(void) {
+	g_sensorAppCtx.keyPressed = gpio_read(BUTTON1)? 0 : 1;
+}
+
 void task_keys(void) {
 	u8 button_on = gpio_read(BUTTON1)? 0 : 1;
 	if(button_on) {
@@ -214,12 +218,9 @@ void task_keys(void) {
 			// event button on
 			g_sensorAppCtx.key1flag = 0;
 			g_sensorAppCtx.keyPressedTime = clock_time();
-			app_set_thb_report();
+///			app_set_thb_report();
 			// set next adv. interval
-			adv_buf.adv_restore_count = 80;
-			blta.advInt_min = CONNECT_ADV_INTERVAL_MIN;
-			blta.advInt_max = CONNECT_ADV_INTERVAL_MAX;
-			blta.adv_interval = CONNECT_ADV_INTERVAL_MIN*625*CLOCK_16M_SYS_TIMER_CLK_1US; // system tick
+			setAdvTime(CONNECT_ADV_COUNT, CONNECT_ADV_INTERVAL_MIN);
 			if(!g_sensorAppCtx.timerKeyEvt)
 				g_sensorAppCtx.timerKeyEvt
 				= TL_ZB_TIMER_SCHEDULE(keyTimerCb, NULL, 500); // 500 ms

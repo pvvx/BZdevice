@@ -160,12 +160,6 @@ void sensorDevice_zclWriteReqCmd(u16 clusterId, zclWriteCmd_t *pWriteReqCmd)
 		}
 	}
 #endif
-#if USE_CHG_NAME
-	else if(clusterId == ZCL_CLUSTER_GEN_BASIC) {
-		save_dev_name();
-	}
-
-#endif
 #endif
 }
 #endif	/* ZCL_WRITE */

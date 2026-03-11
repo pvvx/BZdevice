@@ -8,6 +8,7 @@ import sys
 import signal
 import struct
 import serial
+import keyboard
 import platform
 import time
 import argparse
@@ -16,25 +17,16 @@ import io
 
 __progname__ = 'TLSR82xx TlsrPgm'
 __filename__ = 'TlsrPgm'
-__version__ = '31.10.23'
+__version__ = '08.03.26'
 
 DEFAULT_UART_BAUD = 230400
 
 FLASH_SECTOR_SIZE = 4096
 
-class FatalError(RuntimeError):
-	def __init__(self, message):
-		RuntimeError.__init__(self, message)
-
-	@staticmethod
-	def WithResult(message, result):
-		message += " (result was %s)" % hexify(result)
-		return FatalError(message)
-
-def signal_handler(signal, frame):
-	print()
-	print('Keyboard Break!')
-	sys.exit(1)
+sws_flg = 2
+sws_addr = 0
+sws_enable = False
+pgm = {}
 
 crctable = (
 0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
@@ -130,6 +122,9 @@ class TLSRPGM:
 	CMD_SWIRE_FIFO_READ = 11
 	CMD_SWIRE_FIFO_FWRITE = 12
 	CMD_FLASH_WRRD = 13
+	CMD_FLASH_RDCRC = 14 # FW ver >= 0.0.0.3
+	CMD_SWS_PRINTF = 15 # FW ver >= 0.0.0.4
+	CMD_WAIT_RESP = 16 # FW ver >= 0.0.0.5
 
 	CMDF_GET_VERSION = 0
 	CMDF_MCU_REBOOT = 1
@@ -176,6 +171,7 @@ class TLSRPGM:
 	]
 
 	pgm_version = 0
+	pgm_ver_int = 0
 	pgm_cid = 0
 	pgm_pwr = 1
 
@@ -297,6 +293,7 @@ class TLSRPGM:
 			print('\rError[%d] Read PGM Version and Config!' % self.err)
 			return False
 		self.pgm_version = [data[5], data[4]]
+		self.pgm_ver_int = (data[5] << 8) | data[4]
 		(self.pgm_cid, self.pgm_pwr, self.pgm_swdiv, self.pgm_swaddrlen) = struct.unpack('<HBBB', data[6:11])
 		self.pgm_swbuf = data[11:17]
 		if self.pgm_cid == 0 and self.pgm_ver == 0:
@@ -318,6 +315,8 @@ class TLSRPGM:
 			self.pgm_clk = 32
 			self.pgm_chip = '?'
 		print('PGM: ChipID: 0x%04x (%s), ver:' % (self.pgm_cid, self.pgm_chip), bcd2str(self.pgm_version))
+		if self.pgm_ver_int < 4:
+			print('Attention: this program requires PGM version 0.0.0.4 or higher!')
 		self.pgm_swsps = self.pgm_clk/5/self.pgm_swdiv
 		print('swdiv %d, addrlen %d, swbuf [%s], ' % (self.pgm_swdiv, self.pgm_swaddrlen, hex2str(self.pgm_swbuf)), end = '')
 		if self.pgm_pwr != 0:
@@ -341,6 +340,8 @@ class TLSRPGM:
 		(self.pgm_swdiv, self.pgm_swaddrlen) = struct.unpack('<BB', data[4:6])
 		self.pgm_swbuf = data[6:12]
 		print('PGM: swdiv %d, addrlen %d, swbuf [%s]' % (self.pgm_swdiv, self.pgm_swaddrlen, hex2str(self.pgm_swbuf)))
+		self.pgm_swsps = self.pgm_clk/5/self.pgm_swdiv
+		print('SWire bit rate: %.4f Mbits/s' % self.pgm_swsps)
 		return True
 	# Reset/Power pin On, Activate, get PC
 	def Activate(self, tms):
@@ -437,7 +438,7 @@ class TLSRPGM:
 		if data == None:
 			print('\rError Write Flash Status! (%d)' % self.err) 
 			return None
-		if not self.WaitingFlashReady(5):
+		if not self.WaitingFlashReady(10):
 			return None
 		#data = self.command(struct.pack('<BBHHB', self.CMD_FLASH_WRRD, 0, 0, 1, 5), 7)
 		#if data == None:
@@ -714,7 +715,7 @@ class TLSRPGM:
 		return self.WaitingFlashReady(3000)
 	# Write Blocks Flash from stream
 	def WriteBlockFlash(self, stream, offset = 0, size = 0, erase = True):
-		wrsize = 0x100
+		wrsize = 0x100 # Flash write max 256 bytes
 		cnt_err = self.ERR_RETRY_COUNT
 		if erase and (offset & (self.FLASH_SECTOR_SIZE-1)) != 0:
 			erasec = offset & (0xffffff^(self.FLASH_SECTOR_SIZE-1))
@@ -763,6 +764,12 @@ class TLSRPGM:
 						else:
 							if not self.WaitingFlashReady():
 								return False
+							if self.pgm_ver_int >= 0x0003:
+								#print('\rGet CRC16 Flash record in 0x%06x...' % offset, end = '')
+								rdata = self.command(struct.pack('<BBHH', self.CMD_FLASH_RDCRC, offset & 0xff, (offset>>8) & 0xffff, wrsize), 6)
+								if rdata == None or rdata[2:4] != crc16(data, len(data)):
+									print('\rFlash CRC16 check error in block at 0x%06x!' % offset)
+									return False
 							cnt_err = self.ERR_RETRY_COUNT
 						break
 					break
@@ -840,32 +847,115 @@ class TLSRPGM:
 				flgrun = False
 		print()
 		return True
-	# Wait CPU run
-	def WaitCPU(self, twait_sec = 1, offset = 0x6bc):
+	# Fast Wait Response & Write
+	def WaitResp(self, twait_sec = 1, offset = 0x6bc, wraddr = None, wrdata = None):
 		if twait_sec < 1:
 			twait_sec = 1
+		if wraddr != None and wrdata != None:
+			data = self.command(struct.pack('<BBHBH', self.CMD_WAIT_RESP, offset & 0xff, (offset>>8) & 0xffff, wraddr & 0xff, (wraddr>>8) & 0xffff) + wrdata, 6)
+		else:
+			data = self.command(struct.pack('<BBH', self.CMD_WAIT_RESP, offset & 0xff, (offset>>8) & 0xffff), 6)
+		if data == None:
+			print('Error Wait Respone command! (%d)' % self.err) 
+			return False
+		t1 = time.time()
+		te = t1 + twait_sec
+		tt = t1
+		while tt < te:
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
+			rblk = self.read(10)
+			if rblk == None:
+				print()
+				return False
+			if len(rblk) == 0:
+				tt = time.time()
+				if tt - t1 > 1:
+					print('\rSleep %.0f sec?' % (tt-t1), end = '')
+					t1 == tt
+				continue
+			if len(rblk) < 10 or rblk[0] != self.CMD_WAIT_RESP:
+				print('\r\nError Read response!') 
+				return False
+			if rblk[2] == 4 and rblk[3] == 0 and rblk[1] == 0 and crc_chk(rblk):
+				self.ext_pc = struct.unpack('<I', rblk[4:8])
+				if offset == 0x6bc:
+					print('\rCPU PC=0x%08x          ' % self.ext_pc)
+				else:
+					print('\rReg at 0x%06x=0x%08x   ' % (offset, self.ext_pc))
+				if wraddr != None and wrdata != None:
+					if wraddr == 0x602 and (wrdata == b'\x05' or wrdata == b'\x06'):
+						if wrdata == b'\x05':
+							print('CPU Stopped ([0x0602] = 0x05)')
+						if wrdata == b'\x06':
+							print('CPU Stall ([0x0602] = 0x06)')
+					else:
+						s = hex2str(wrdata)
+						print('Wr [0x%06x] = %s)' %(wraddr, s))
+			else:
+				print('\r\nError Read response!')
+				return False
+			return True
+		print()
+		return False
+	# Wait CPU run
+	def WaitCPU(self, twait_sec = 1, offset = 0x6bc, flg_stop = False, flg_stall = False):
+		if twait_sec < 1:
+			twait_sec = 1
+		if self.pgm_ver_int >= 5:
+			if flg_stop:
+				return self.WaitResp(twait_sec, offset, 0x0602, b'\x05')
+			elif flg_stall:
+				return self.WaitResp(twait_sec, offset, 0x0602, b'\x06')
+			return self.WaitResp(twait_sec, offset)
 		flgsleep = False
 		wblk = struct.pack('<BBHH', self.CMD_SWIRE_READ, offset & 0xff, (offset>>8) & 0xffff, 4) 
 		t1 = time.time()
 		t2 = t1
 		te = t1 + twait_sec
 		while t2 < te:
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
 			self.write(crc_blk(wblk))
 			rblk = self.read(6)
 			t2 = time.time()
-			if rblk == None or len(rblk) < 6 or rblk[0] != wblk[0]:
+			if rblk == None:
+				print()
+				return False
+			if len(rblk) < 6 or rblk[0] != wblk[0]:
 				print('\r\nError Read response!') 
 				return False
 			self.err = rblk[1];
 			self.wcnt = rblk[2] | (rblk[3]<<8)
 			if self.wcnt == 4 and self.err == 0:
-				rblk += self.read(4)
+				rdata = self.read(4)
+				if rdata == None:
+					print()
+					return False
+				rblk += rdata
 				if crc_chk(rblk):
 					if flgsleep:
 						t1 = t2
 						print()
 					self.ext_pc = struct.unpack('<I', rblk[4:8])
-					print('\rCPU PC=0x%08x' % self.ext_pc)
+					if offset == 0x6bc:
+						print('\rCPU PC=0x%08x' % self.ext_pc)
+					else:
+						print('\rReg32 at 0x%06x=0x%08x' % (offset, self.ext_pc))
+					if flg_stop:
+						print('CPU Stop...', end = ' ')
+						if not self.WriteRegsData(0x602, b'\x05'):
+							return False
+						print('ok')
+					if flg_stall:
+						print('CPU Stall...', end = ' ')
+						if not self.WriteRegsData(0x602, b'\x06'):
+							return False
+						print('ok')
 					return True
 				else:
 					print('\r\nError Read response!') 
@@ -886,6 +976,63 @@ class TLSRPGM:
 			print('\r\nError unlock Flash!') 
 			return None
 		return ret
+	def SwsPrintf(self, offset = 0, flg = 1):
+		offset &= 0xffffff
+		if flg == 0:
+			wdata = 0xff
+			s = 'Close '
+		elif flg == 1:
+			wdata = 0
+			s = 'Open '
+		elif flg == 2:
+			s = 'Continue '
+			flg = 2
+		else:
+			s = 'Next '
+			flg = 3
+		sws_addr = offset
+		sws_flg = flg
+		if flg < 2:
+			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
+			data = self.command(struct.pack('<BBHB', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff, wdata), 6)
+			if data == None or self.wcnt != 1:
+				print('error!', flush=True)
+				return False
+			print('ok')
+			if flg == 0:
+				return True
+		if flg == 2:
+			print('%sSWS Printf at SRAM address 0x%06x...' % (s, offset), end = '')
+			data = self.command(struct.pack('<BBH', self.CMD_SWS_PRINTF, offset & 0xff, (offset>>8) & 0xffff), 6)
+			if data == None or self.wcnt != 0:
+				print('error!', flush=True)
+				return False
+			print('ok')
+			if flg == 0:
+				return True
+		self._port.timeout = 0.01
+		sws_enable = True
+		while sws_enable: #TODO
+			if keyboard.is_pressed("esc"):
+				print()
+				print('Keyboard Break!')
+				break
+			try:
+				rblk = self._port.read(254)
+			except:
+				#print('Error read %s!' % (self.port))
+				return False
+			if len(rblk) != 0:
+				print(rblk.decode(errors='ignore'), end = '', flush=True)
+		return True
+		
+
+def signal_handler(signal, frame):
+	print()
+	print('Keyboard Break!')
+	sws_enable = False #TODO
+	sys.exit(1)
+
 #============================= 
 # main()
 #============================= 
@@ -952,6 +1099,11 @@ def main():
 		help='Show Worked Time',
 		action="store_true")
 	parser.add_argument(
+		'-d', '--div',
+		help='Set the SWire transfer rate divisor',
+		type=arg_auto_int,
+		default = 0)
+	parser.add_argument(
 		'-u', '--u2b',
 		help='Use 2 bytes swire address (TLSR826x)',
 		action="store_true")
@@ -1005,8 +1157,26 @@ def main():
 	parser_write_flash = subparsers.add_parser(
 			'ws',
 			help='Write file to Swire addres')
-	parser_write_flash.add_argument('address', help='Start address', type=arg_auto_int)
+	parser_write_flash.add_argument('address', help='Starting address for write', type=arg_auto_int)
 	parser_write_flash.add_argument('filename', help='Name of binary file')
+
+	parser_write_flash = subparsers.add_parser(
+			'wsb',
+			help='Write byte to Swire addres')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+	parser_write_flash.add_argument('value', help='byte (8 bits)', type=arg_auto_int)
+
+	parser_write_flash = subparsers.add_parser(
+			'wsw',
+			help='Write 16-bit word to Swire address')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+	parser_write_flash.add_argument('value', help='short word (16 bits)', type=arg_auto_int)
+
+	parser_write_flash = subparsers.add_parser(
+			'wsd',
+			help='Write 32-bit word to Swire address')
+	parser_write_flash.add_argument('address', help='Write address', type=arg_auto_int)
+	parser_write_flash.add_argument('value', help='word (32 bits)', type=arg_auto_int)
 
 	parser_read_flash = subparsers.add_parser(
 			'ra',
@@ -1043,6 +1213,10 @@ def main():
 			help='Show uit32 register or SRAM addres')
 	parser_read_flash.add_argument('address', help='address (PC - 0x6bc)', type=arg_auto_int)
 	parser_read_flash.add_argument('time', help='time (sec)', type=arg_auto_int)
+	parser_read_flash = subparsers.add_parser(
+			'sws',
+			help='SWS Printf (PGM version >= 0.0.0.4 is used)')
+	parser_read_flash.add_argument('address', help='SRAM address, (Ctrl-C - exit)', type=arg_auto_int)
 
 	args = parser.parse_args()
 	print('=======================================================')
@@ -1053,14 +1227,17 @@ def main():
 		sys.exit(1)
 	if not pgm.GetVersion():
 		sys.exit(1)
+	swd = int(round(pgm.pgm_clk/4.8,0))
+	if args.div != 0:
+		swd = args.div
 	if args.u2b:
-		if pgm.pgm_swaddrlen != 2:
-			if not pgm.SetPgmConfig(swdiv = int(round(pgm.pgm_clk/4.8,0)), swaddrlen=2, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
+		if pgm.pgm_swaddrlen != 2 or pgm.pgm_swdiv != swd:
+			if not pgm.SetPgmConfig(swdiv = swd, swaddrlen=2, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
 				pgm.close()
 				sys.exit(1)
 	else:
-		if pgm.pgm_swaddrlen != 3:
-			if not pgm.SetPgmConfig(swdiv = int(round(pgm.pgm_clk/4.8,0)), swaddrlen=3, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
+		if pgm.pgm_swaddrlen != 3 or pgm.pgm_swdiv != swd:
+			if not pgm.SetPgmConfig(swdiv = swd, swaddrlen=3, swbuf = b'\x5a\x00\x06\x02\x00\x05'):
 				pgm.close()
 				sys.exit(1)
 	# set speed up?
@@ -1070,7 +1247,7 @@ def main():
 	if args.trst > 0 or args.act != 0 or args.stopcpu or args.cpustall or args.zw:
 		print('=== PreProcess ========================================')
 	if args.zw: # Wait CPU run
-		if not pgm.WaitCPU(args.zw):
+		if not pgm.WaitCPU(args.zw, 0x6bc, args.stopcpu, args.cpustall):
 			pgm.close()
 			sys.exit(1)
 	if args.trst > 0: # Hard reset (Pin RST set '0')?	
@@ -1111,18 +1288,19 @@ def main():
 		if not pgm.Activate(70): # Activate 70 ms
 			pgm.close()
 			sys.exit(1)
-	if args.stopcpu:	# CPU Stop ?
-		print('CPU Stop...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x05'):
-			pgm.close()
-			sys.exit(1)
-		print('ok')
-	if args.cpustall:	# CPU Stall ?
-		print('CPU Stall...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x06'):
-			pgm.close()
-			sys.exit(1)
-		print('ok')
+	if not args.zw:
+		if args.stopcpu:	# CPU Stop ?
+			print('CPU Stop...', end = ' ')
+			if not pgm.WriteRegsData(0x602, b'\x05'):
+				pgm.close()
+				sys.exit(1)
+			print('ok')
+		if args.cpustall:	# CPU Stall ?
+			print('CPU Stall...', end = ' ')
+			if not pgm.WriteRegsData(0x602, b'\x06'):
+				pgm.close()
+				sys.exit(1)
+			print('ok')
 	# Command Read to File
 	print('=== Process ===========================================')
 	if args.operation == 'rs' \
@@ -1265,6 +1443,34 @@ def main():
 		if not pgm.TestDebugPC(args.time, args.address):
 			pgm.close()
 			sys.exit(1)
+	elif args.operation == 'sws':
+		if not pgm.SwsPrintf(args.address):
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'wsb':
+		offset = args.address & 0x00ffffff
+		b = args.value & 0xff
+		print('Write byte 0x%02x to 0x%06x...' % (b, offset))
+		ret = pgm.WriteRegsData(offset, struct.pack("<B", b))
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'wsw':
+		offset = args.address & 0x00ffffff
+		sw = args.value & 0xffff
+		print('Write 16 bits word 0x%04x to 0x%06x...' % (sw, offset))
+		ret = pgm.WriteRegsData(offset, struct.pack("<H", sw))
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
+	elif args.operation == 'wsd':
+		offset = args.address & 0x00ffffff
+		dw = args.value & 0xffffffff
+		print('Write 32 bits word 0x%08x to 0x%06x...' % (dw, offset))
+		ret = pgm.WriteRegsData(offset, struct.pack("<I", dw))
+		if ret == None:
+			pgm.close()
+			sys.exit(1)
 	else:
 		print('No action assigned.')
 	if args.run or args.go or args.mrst:
@@ -1272,13 +1478,13 @@ def main():
 	# Commands / flags post main processing
 	if args.run:
 		print('CPU Run...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x88'):
+		if not pgm.WriteRegsData(0x602, b'\x88'): # CPU ReBoot
 			pgm.close()
 			sys.exit(1)
 		print('ok')
 	if args.go:
 		print('CPU Go...', end = ' ')
-		if not pgm.WriteRegsData(0x602, b'\x08'):
+		if not pgm.WriteRegsData(0x602, b'\x08'): # CPU Go
 			pgm.close()
 			sys.exit(1)
 		print('ok')

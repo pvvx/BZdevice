@@ -96,17 +96,7 @@ char int_to_hex(u8 num) {
 	return hex_ascii[num];
 }
 
-void populate_sw_build(void) {
-	g_zcl_basicAttrs.swBuildId[1] = int_to_hex(STACK_RELEASE>>4);
-	g_zcl_basicAttrs.swBuildId[2] = int_to_hex(STACK_RELEASE & 0xf);
-	g_zcl_basicAttrs.swBuildId[3] = int_to_hex(STACK_BUILD>>4);
-	g_zcl_basicAttrs.swBuildId[4] = int_to_hex(STACK_BUILD & 0xf);
-	g_zcl_basicAttrs.swBuildId[6] = int_to_hex(APP_RELEASE>>4);
-	g_zcl_basicAttrs.swBuildId[7] = int_to_hex(APP_RELEASE & 0xf);
-	g_zcl_basicAttrs.swBuildId[8] = int_to_hex(APP_BUILD>>4);
-	g_zcl_basicAttrs.swBuildId[9] = int_to_hex(APP_BUILD & 0xf);
-}
-
+__attribute__((optimize("-Os")))
 void populate_date_code(void) {
 	u8 month;
 	if (__DATE__[0] == 'J' && __DATE__[1] == 'a' && __DATE__[2] == 'n') month = 1;
@@ -324,6 +314,8 @@ void user_app_init(void)
 #endif
     // read sensors
 	read_sensor_and_save();
+	// keys init
+	keys_init();
 }
 
 /**********************************************************************
@@ -433,7 +425,6 @@ void user_zb_init(bool isRetention)
 	if(!isRetention){
 
 		/* Populate properties with compiled-in values */
-		populate_sw_build();
 		populate_date_code();
 
 		/* Initialize Stack */

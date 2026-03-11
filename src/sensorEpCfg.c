@@ -46,7 +46,18 @@
 #endif // BOARD
 
 #ifndef ZCL_BASIC_SW_BUILD_ID
-#define ZCL_BASIC_SW_BUILD_ID     	{9,'0','0','0','0','-','0','0','0','0'}
+#define ZCL_BASIC_SW_BUILD_ID   {9 \
+                                ,'0'+ (STACK_RELEASE>>4) \
+                                ,'0'+ (STACK_RELEASE & 0xf) \
+                                ,'0'+ (STACK_BUILD>>4) \
+                                ,'0'+ (STACK_BUILD & 0xf) \
+                                ,'-' \
+                                ,'0'+(APP_RELEASE>>4) \
+                                ,'0'+(APP_RELEASE & 0xf) \
+                                ,'0'+(APP_BUILD>>4) \
+                                ,'0'+(APP_BUILD & 0xf) \
+                                }
+
 #endif
 
 #ifndef ZCL_BASIC_DATE_CODE
@@ -148,12 +159,8 @@ const zclAttrInfo_t basic_attrTbl[] =
 	{ ZCL_ATTRID_BASIC_APP_VER,      		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.appVersion},
 	{ ZCL_ATTRID_BASIC_STACK_VER,    		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.stackVersion},
 	{ ZCL_ATTRID_BASIC_HW_VER,       		ZCL_DATA_TYPE_UINT8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.hwVersion},
-#if USE_CHG_NAME
-	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE,	(u8*)g_zcl_basicAttrs.modelId},
-#else
+	{ ZCL_ATTRID_BASIC_MFR_NAME,            ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.manuName},
 	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,						(u8*)g_zcl_basicAttrs.modelId},
-#endif
-	{ ZCL_ATTRID_BASIC_MODEL_ID,     		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)g_zcl_basicAttrs.modelId},
 	{ ZCL_ATTRID_BASIC_POWER_SOURCE, 		ZCL_DATA_TYPE_ENUM8,    ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.powerSource},
 	{ ZCL_ATTRID_BASIC_DEV_ENABLED,  		ZCL_DATA_TYPE_BOOLEAN,  ACCESS_CONTROL_READ | ACCESS_CONTROL_WRITE, (u8*)&g_zcl_basicAttrs.deviceEnable},
 	{ ZCL_ATTRID_BASIC_SW_BUILD_ID,  		ZCL_DATA_TYPE_CHAR_STR, ACCESS_CONTROL_READ,  						(u8*)&g_zcl_basicAttrs.swBuildId},
@@ -385,30 +392,6 @@ u8 SENSOR_DEVICE_CB_CLUSTER_NUM = (sizeof(g_sensorDeviceClusterList)/sizeof(g_se
 	zcl_thermostatUICfgAttr_t zcl_nv_thermostatUiCfg;
 #endif
 
-#if USE_CHG_NAME
-
-#define FLASH_DEV_NAME_ADDR  0x075000
-static const u8 modelId[] = ZCL_BASIC_MODEL_ID;
-
-void read_dev_name(void) {
-	flash_read_page(FLASH_DEV_NAME_ADDR, ZCL_BASIC_MAX_LENGTH, g_zcl_basicAttrs.modelId);
-	if(g_zcl_basicAttrs.modelId[0] == 0 || g_zcl_basicAttrs.modelId[0] >= ZCL_BASIC_MAX_LENGTH)
-		memcpy(g_zcl_basicAttrs.modelId, modelId, sizeof(modelId));
-}
-
-void save_dev_name(void) {
-	u8 buf[ZCL_BASIC_MAX_LENGTH];
-	if(g_zcl_basicAttrs.modelId[0] == 0 || g_zcl_basicAttrs.modelId[0] >= ZCL_BASIC_MAX_LENGTH)
-		memcpy(g_zcl_basicAttrs.modelId, modelId, sizeof(modelId));
-	flash_read_page(FLASH_DEV_NAME_ADDR, ZCL_BASIC_MAX_LENGTH, buf);
-	if(memcmp(g_zcl_basicAttrs.modelId, buf, g_zcl_basicAttrs.modelId[0] + 1)) {
-		flash_write_status(0, 0);
-		flash_erase_sector(FLASH_DEV_NAME_ADDR);
-		flash_write_page(FLASH_DEV_NAME_ADDR, g_zcl_basicAttrs.modelId[0] + 1, g_zcl_basicAttrs.modelId);
-	}
-}
-
-#endif // USE_CHG_NAME
 /*********************************************************************
  * @fn      zcl_thermostatConfig_save
  *
@@ -435,7 +418,7 @@ nv_sts_t zcl_thermostatConfig_save(void)
 			g_zcl_thermostatUICfgAttrs.measure_interval = READ_SENSOR_TIMER_SEC;
 		g_sensorAppCtx.measure_interval = (g_zcl_thermostatUICfgAttrs.measure_interval * CLOCK_16M_SYS_TIMER_CLK_1S) - 25*CLOCK_16M_SYS_TIMER_CLK_1MS;
 		zb_setPollRate(DEFAULT_POLL_RATE);
-		st = nv_flashWriteNew(1, NV_MODULE_ZCL,  NV_ITEM_ZCL_THERMOSTAT_UI_CFG, sizeof(zcl_thermostatUICfgAttr_t), (u8*)&zcl_nv_thermostatUiCfg);
+		st = nv_flashWriteNew(1, NV_MODULE_APP,  NV_ITEM_APP_THERMOSTAT_UI_CFG, sizeof(zcl_thermostatUICfgAttr_t), (u8*)&zcl_nv_thermostatUiCfg);
 	}
 #else
 	st = NV_ENABLE_PROTECT_ERROR;
@@ -456,28 +439,33 @@ nv_sts_t zcl_thermostatConfig_save(void)
 nv_sts_t zcl_thermostatConfig_restore(void)
 {
 	nv_sts_t st = NV_SUCC;
+	u32 ver = 0;
+	if(nv_flashReadNew(1, NV_MODULE_APP, NV_ITEM_APP_DEV_VER, sizeof(ver), (u8 *)&ver) == NV_SUCC
+		&& ver == USE_NV_APP) {
 
 #ifdef ZCL_THERMOSTAT_UI_CFG
-#if NV_ENABLE
-	st = nv_flashReadNew(1, NV_MODULE_ZCL,  NV_ITEM_ZCL_THERMOSTAT_UI_CFG, sizeof(zcl_nv_thermostatUiCfg), (u8*)&zcl_nv_thermostatUiCfg);
+		st = nv_flashReadNew(1, NV_MODULE_APP,  NV_ITEM_APP_THERMOSTAT_UI_CFG, sizeof(zcl_nv_thermostatUiCfg), (u8*)&zcl_nv_thermostatUiCfg);
 
-	if(st == NV_SUCC){
-		memcpy(&g_zcl_thermostatUICfgAttrs, &zcl_nv_thermostatUiCfg, sizeof(g_zcl_thermostatUICfgAttrs));
+		if(st == NV_SUCC){
+			memcpy(&g_zcl_thermostatUICfgAttrs, &zcl_nv_thermostatUiCfg, sizeof(g_zcl_thermostatUICfgAttrs));
+		} else {
+			memcpy(&g_zcl_thermostatUICfgAttrs, &g_zcl_thermostatUICfgDefault, sizeof(g_zcl_thermostatUICfgAttrs));
+		}
+#if USE_DISPLAY
+		if(g_zcl_thermostatUICfgAttrs.display_off) {
+			init_lcd(); // show_blink_screen();
+		}
+#endif
+#endif
 	} else {
-		memcpy(&g_zcl_thermostatUICfgAttrs, &g_zcl_thermostatUICfgDefault, sizeof(g_zcl_thermostatUICfgAttrs));
+		nv_resetAll();
+		nv_resetModule(NV_MODULE_APP);
+		ver = USE_NV_APP;
+		nv_flashWriteNew(1, NV_MODULE_APP, NV_ITEM_APP_DEV_VER, sizeof(ver), (u8 *)&ver);
+		drv_pm_sleep(PM_SLEEP_MODE_DEEPSLEEP, PM_WAKEUP_SRC_TIMER, 1000);
 	}
 	if(g_zcl_thermostatUICfgAttrs.measure_interval < READ_SENSOR_TIMER_MIN_SEC)
 		g_zcl_thermostatUICfgAttrs.measure_interval = READ_SENSOR_TIMER_SEC;
 	g_sensorAppCtx.measure_interval = (g_zcl_thermostatUICfgAttrs.measure_interval * CLOCK_16M_SYS_TIMER_CLK_1S) - 25*CLOCK_16M_SYS_TIMER_CLK_1MS;
-#if USE_DISPLAY
-	if(g_zcl_thermostatUICfgAttrs.display_off) {
-		init_lcd(); // show_blink_screen();
-	}
-#endif
-
-#else
-	st = NV_ENABLE_PROTECT_ERROR;
-#endif
-#endif
 	return st;
 }

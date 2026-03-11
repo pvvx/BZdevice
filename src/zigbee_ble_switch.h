@@ -34,9 +34,10 @@ typedef enum{
 
 
 typedef struct{
-	u32      bleTaskTick;
+//	u32      bleTaskTick;
 	volatile app_currentSlot_e slot;
 	u8       bleState;
+	u8		 switch_to_ble;
 }app_dualModeInfo_t;
 
 typedef void (*master_service_t) (void);

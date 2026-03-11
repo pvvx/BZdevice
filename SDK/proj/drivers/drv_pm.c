@@ -335,7 +335,68 @@ void drv_pm_wakeupPinConfig(drv_pm_pinCfg_t *pinCfg, u32 pinNum)
 	}
 }
 
+void drv_pm_lowPowerEnter(void)
+{
+#if PM_ENABLE
+	drv_pm_wakeup_src_e wakeupSrc = PM_WAKEUP_SRC_PAD;
+	u32 sleepTime = 0;
+	bool longSleep = 0;
 
+#if !defined(__PROJECT_TL_BOOT_LOADER__) && !defined(__PROJECT_TL_SNIFFER__)
+	if(tl_stackBusy() || !zb_isTaskDone()){
+		return;
+	}
+
+	apsCleanToStopSecondClock();
+#endif
+
+	u32 r = drv_disable_irq();
+
+	ev_timer_event_t *timerEvt = ev_timer_nearestGet();
+	if(timerEvt){
+		wakeupSrc |= PM_WAKEUP_SRC_TIMER;
+		sleepTime = timerEvt->timeout;
+
+		if(sleepTime){
+			if(sleepTime > PM_NORMAL_SLEEP_MAX){
+				longSleep = 1;
+			}else{
+				longSleep = 0;
+			}
+		}else{
+			drv_restore_irq(r);
+			return;
+		}
+	}
+	if(!sleepTime){
+		drv_restore_irq(r);
+		return;
+	}
+
+#if defined(MCU_CORE_8258) || defined(MCU_CORE_B91) || defined(MCU_CORE_TL321X) || defined(MCU_CORE_TL721X)
+	drv_pm_sleep_mode_e sleepMode = (wakeupSrc & PM_WAKEUP_SRC_TIMER) ? PM_SLEEP_MODE_DEEP_WITH_RETENTION : PM_SLEEP_MODE_DEEPSLEEP;
+#endif
+
+#if !defined(__PROJECT_TL_BOOT_LOADER__) && !defined(__PROJECT_TL_SNIFFER__)
+	rf_paShutDown();
+	if(sleepMode == PM_SLEEP_MODE_DEEPSLEEP){
+		drv_pm_deepSleep_frameCnt_set(ss_outgoingFrameCntGet());
+	}
+#endif
+
+	if(!longSleep){
+		drv_pm_sleep(sleepMode, wakeupSrc, clock_time() + sleepTime *1000*S_TIMER_CLOCK_1US);
+	}else{
+		drv_pm_longSleep(sleepMode, wakeupSrc, sleepTime);
+	}
+
+//#if !defined(__PROJECT_TL_BOOT_LOADER__) && !defined(__PROJECT_TL_SNIFFER__)
+//	secondClockRun();
+//#endif
+	drv_restore_irq(r);
+#endif
+}
+/*
 void drv_pm_lowPowerEnter(void)
 {
 	drv_pm_wakeup_src_e wakeupSrc = PM_WAKEUP_SRC_PAD;
@@ -387,6 +448,7 @@ void drv_pm_lowPowerEnter(void)
 
 	drv_restore_irq(r);
 }
+*/
 
 void drv_pm_wakeupTimeUpdate(void)
 {

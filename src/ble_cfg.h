@@ -14,8 +14,9 @@
 #define DEF_ADV_INTERVAL_MIN			8000	// 5000 ms * 1.6
 #define DEF_ADV_INTERVAL_MAX			(DEF_ADV_INTERVAL_MIN + 10) // + 6.25 ms
 
-#define CONNECT_ADV_INTERVAL_MIN		1600	// 1000 ms * 1.6
+#define CONNECT_ADV_INTERVAL_MIN		1605	// 1000 ms * 1.6
 #define CONNECT_ADV_INTERVAL_MAX		(CONNECT_ADV_INTERVAL_MIN + 10) // + 6.25 ms
+#define CONNECT_ADV_COUNT				80
 
 /* interval: 	n*1.25 ms
  * lantency:	(n+1)*interval*1.25 ms
@@ -89,6 +90,7 @@ typedef enum{
 extern u8 my_HardStr[3];
 extern u8 my_batVal;
 extern u16 batteryValueInCCC;
+void setAdvTime(u16 count, u16 interval_ms);
 #if USE_BLE_OTA
 extern volatile u8 ota_is_working;
 #endif

@@ -1,17 +1,17 @@
 #include "tl_common.h"
 //#include "sensors.h"
 
-#define USE_READ_ADC_CALIBRATION	0
 #define ADC_CALIBRATION_VREF		1175
 
 #define ADC_BUF_COUNT	8
 
 //ADC reference voltage cfg
 adc_vref_ctr_t adc_vref_cfg = {
-	.adc_vref 		= 1175, //default ADC ref voltage (unit:mV)
+	.adc_vref 		= ADC_CALIBRATION_VREF, //default ADC ref voltage (unit:mV)
 	.adc_calib_en	= 1 	//default enable
 };
 
+#if USE_READ_ADC_CALIBRATION
 typedef struct {
 	u16 vref; //default: 1175 mV
 	s8  offset;
@@ -22,7 +22,7 @@ adc_vref_ctr2_t adc_vref_cfg2; /* = {
 	.vref 		= ADC_CALIBRATION_VREF, //default ADC ref voltage (unit:mV)
 	.offset		= 0 	//default disable
 }; */
-
+#endif
 /**
  * @brief This function serves to set the channel reference voltage.
  * @param[in]   ch_n - enum variable of ADC input channel.
@@ -76,20 +76,18 @@ void adc_set_ain_pre_scaler(ADC_PreScalingTypeDef v_scl)
 	//adc_pre_scale = 1<<(unsigned char)v_scl;
 }
 
+#if USE_READ_ADC_CALIBRATION
 void drv_calib_adc_verf(void)
 {
-#if USE_READ_ADC_CALIBRATION
 	u8 adc_vref_calib_value[7] = {0};
 
 	flash_read(CFG_ADC_CALIBRATION, 7, adc_vref_calib_value);
 #if BOARD == BOARD_MJWSD05MMC
 #warning "Calculate adc_vref!"
 #endif
-#endif
 	adc_vref_cfg2.vref = ADC_CALIBRATION_VREF;
 	adc_vref_cfg2.offset = 0;
 
-#if USE_READ_ADC_CALIBRATION
 	//Check the two-point gpio calibration value whether is exist
 	if((adc_vref_calib_value[4] != 0xff) &&
 	   (adc_vref_calib_value[4] <= 0x7f) &&
@@ -109,8 +107,9 @@ void drv_calib_adc_verf(void)
 		if(adc_vref_cfg2.vref < ADC_CALIBRATION_VREF - 128 || adc_vref_cfg2.vref > ADC_CALIBRATION_VREF - 127)
 			adc_vref_cfg2.vref = ADC_CALIBRATION_VREF;
 	}
-#endif
+	adc_vref_cfg.vref = adc_vref_cfg2.vref;
 }
+#endif
 
 /*
  * libdrivers_8258.a(pm.o): In function `cpu_wakeup_no_deepretn_back_init':
@@ -126,8 +125,10 @@ void adc_set_gpio_calib_vref(u16 x) {
 
 _attribute_ram_code_sec_
 void adc_channel_init(ADC_InputPchTypeDef p_ain) {
+#if USE_READ_ADC_CALIBRATION
 	if(adc_vref_cfg2.vref == 0)
 		drv_calib_adc_verf();
+#endif
 #if 0 // gpio set in app_config.h ?
 	if(p_ain == SHL_ADC_VBAT) {
 		// Set missing pin on case TLSR8251F512ET24/TLSR8253F512ET32
@@ -199,10 +200,19 @@ u16 get_adc_mv(void) { // ADC_InputPchTypeDef
 	adc_power_on_sar_adc(0); // - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 			+ adc_sample[5]) / 4;
+
+#if USE_READ_ADC_CALIBRATION
 #if BOARD == BOARD_MJWSD05MMC
 	return ((adc_average + adc_vref_cfg2.offset) * 1686) >> 10; // adc_vref default: 1175 (mV)
 #else
 	return ((adc_average + adc_vref_cfg2.offset) * adc_vref_cfg2.vref) >> 10; // adc_vref default: 1175 (mV)
 #endif
+#else // USE_READ_ADC_CALIBRATION
+#if BOARD == BOARD_MJWSD05MMC
+	return ((adc_average) * 1686) >> 10; // adc_vref default: 1175 (mV)
+#else
+	return (adc_average * ADC_CALIBRATION_VREF) >> 10; // adc_vref default: 1175 (mV)
+#endif
+#endif // USE_READ_ADC_CALIBRATION
 }
 

@@ -11,6 +11,7 @@ $(OUT_PATH)$(SRC_DIR)/patch_sdk/random.o \
 $(OUT_PATH)$(SRC_DIR)/patch_sdk/i2c_drv.o \
 $(OUT_PATH)$(SRC_DIR)/patch_sdk/hw_drv.o \
 $(OUT_PATH)$(SRC_DIR)/patch_sdk/cstartup_8258.o \
+$(OUT_PATH)$(SRC_DIR)/patch_sdk/drv_nv.o \
 $(OUT_PATH)$(SRC_DIR)/bthome_beacon.o \
 $(OUT_PATH)$(SRC_DIR)/zigbee_ble_switch.o \
 $(OUT_PATH)$(SRC_DIR)/app_ui.o \

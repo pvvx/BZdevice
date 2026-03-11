@@ -65,15 +65,37 @@ void app_pm_task(void) {
 	if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN || g_bleConnDoing){
 		if(!bls_pm_conditionCbIsValid()){
 //			bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_ADV | DEEPSLEEP_RETENTION_CONN);
-			bls_pm_setWakeupSource(PM_WAKEUP_PAD);
-			bls_pm_conditionCbRegister(app_zigbeeIdle);   //register it to enable ble suspend mode
+//			bls_pm_setWakeupSource(PM_WAKEUP_SRC_PAD);
+//			sleepMode = PM_SLEEP_MODE_MCU_STALL;
+			bls_pm_conditionCbRegister(app_zigbeeIdle);   // register it to enable ble suspend mode
 		}
-		return;
+//		return;
 	} else if(APP_BLE_STATE_GET() == BLS_LINK_STATE_ADV){
 		if(bls_pm_conditionCbIsValid()){
 			bls_pm_conditionCbUnregister();
 		}
 	}
+
+	if((APP_BLE_STATE_GET() != BLS_LINK_STATE_IDLE)){
+		/*
+		 * adv for ADV_IDLE_ENTER_DEEP_TIME and conn for CONN_IDLE_ENTER_DEEP_TIME no event, enter deepsleep
+		 *  */
+		 if(blt_pm_proc()){
+			 /*
+				* here call "bls_ll_setAdvEnable(BLC_ADV_DISABLE)" to let ble enter state of BLS_LINK_STATE_IDLE,
+				* and then need to call ble_task_restart() to start ble task again
+				*
+				* */
+			 if(bls_ll_setAdvEnable(BLC_ADV_DISABLE) == BLE_SUCCESS){
+				 /* rf irq is cleared in the "bls_ll_setAdvEnable",
+					 * so that the rf tx/rx interrupt will be missed if the "bls_ll_setAdvEnable" is called in Zigbee mode
+					 */
+				ZB_RF_ISR_RECOVERY;
+			}
+		 }
+	}
+
+	g_dualModeInfo.switch_to_ble = 0;
 
 	if(CURRENT_SLOT_GET() == DUALMODE_SLOT_ZIGBEE && app_zigbeeIdle()){
 		// task_keys();
@@ -86,12 +108,15 @@ void app_pm_task(void) {
 			drv_pm_lowPowerEnter();
 		} else {
 			if(!is_switch_to_ble()) {
-				switch_to_ble_context();
-				drv_pm_sleep(sleepMode, wakeupSrc, get_ble_next_event_tick());
+				if(APP_BLE_STATE_GET() == BLS_LINK_STATE_ADV){
+					drv_pm_sleep(sleepMode, wakeupSrc, get_ble_next_event_tick());
+				}else if(APP_BLE_STATE_GET() == BLS_LINK_STATE_CONN || g_bleConnDoing){
+					g_dualModeInfo.switch_to_ble = 1;
+				}
 			}
 		}
 	}
-
+#if 0
 	if(CURRENT_SLOT_GET() == DUALMODE_SLOT_BLE && (APP_BLE_STATE_GET() != BLS_LINK_STATE_IDLE) && blt_pm_proc()){
 		 /*
 		  * here call "bls_ll_setAdvEnable(BLC_ADV_DISABLE)" to let ble enter state of BLS_LINK_STATE_IDLE,
@@ -102,6 +127,7 @@ void app_pm_task(void) {
 	 }
 
 	return;
+#endif
 }
 
 #endif
