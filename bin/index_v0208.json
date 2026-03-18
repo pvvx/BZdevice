@@ -4,7 +4,7 @@
         "fileSize": 160450,
         "manufacturerCode": 4417,
         "imageType": 518,
-        "sha512": "c23a970b8ed2d88ef205da356e4f948e0cf0c5f811305e4dd6fe78076bf311ba1c080c07fabf0cdb153052f7971352b12b2469aefe2f081efa9435c081deaaac",
+        "sha512": "8ed0085a8d9815a4417188c1bd980cf5f2406e4e2b9ec1160e73c7dcba63d783946fcdc7eba194da9a23f0e031472f6c5abe58c2bb75ee009e4374746b49502d",
         "otaHeaderString": "Qingping:CGDK2-bz",
         "modelId": "CGDK2-bz",
         "manufacturerName": [
@@ -17,7 +17,7 @@
         "fileSize": 159650,
         "manufacturerCode": 4417,
         "imageType": 520,
-        "sha512": "fb177847a7ba67e7508ed6e34753ec0788a0712553a4fb9fc7a599221eded7a415436220b55b830b54e1835d0f3d94e9704cb896973b136cc3998e61d7a3ecfd",
+        "sha512": "8f3fe407a6eda53e99dad02c04a29bd5f1bc495914078bb9f601c5e91af39d24ef1174a2b5d6bca1dfc83b504bf6b7586de03c1e2201623cbab2e382e7eee1e9",
         "otaHeaderString": "MiaoMiaoCe:MHO-C401N-bz",
         "modelId": "MHO-C401N-bz",
         "manufacturerName": [
@@ -30,7 +30,7 @@
         "fileSize": 159666,
         "manufacturerCode": 4417,
         "imageType": 522,
-        "sha512": "962047b2475c22e75a1b5170b3f4475f8fc57e1718d3b4f55371d09b2ee73b4b997b64726f5dc16ba4e913ec60c4f3d7738372840a40e9936a2d38b96bf96f66",
+        "sha512": "0103e86f9ea6bcc8ded33f9bbeb3d07240b164b10cd1c6c860e2403d6e21c8be6acffc3a48e2c15810486cc048cdd306561d38be6fcbac4bfa41a7479f708a67",
         "otaHeaderString": "Xiaomi:LYWSD03MMC-bz",
         "modelId": "LYWSD03MMC-bz",
         "manufacturerName": [
@@ -43,7 +43,7 @@
         "fileSize": 159874,
         "manufacturerCode": 4417,
         "imageType": 523,
-        "sha512": "340b015b19a2eb0ce9e37cf2d6d9f35fce040ed19629c44ee02da2bdd2377a60a316aeda08b089ee1073cc78a10e31eadcd60ff113f0e90411d2d2a9ebf0fd56",
+        "sha512": "99d87d4f2a1e1e5a859e0d14088d41e33fbeffe9b9bafa15471f89c05e2378442906d20e0cd429c748758a0ae06535a6e4f78dac99b577ac86a651a6ae25cc2f",
         "otaHeaderString": "MiaoMiaoCe:MHO-C122-bz",
         "modelId": "MHO-C122-bz",
         "manufacturerName": [
@@ -56,7 +56,7 @@
         "fileSize": 157266,
         "manufacturerCode": 4417,
         "imageType": 529,
-        "sha512": "5e03de4b2ee63f9313c9907e236d4870951387a2a306e9a2eac12d241de8e2b53ce03a79694f4708c6a686cd095a1c1c838eebe1c16368417c8b2c95d49377cf",
+        "sha512": "03662cbb8c26454018cab2e3081fe116fae64a8ac4238e316000c26aa3a25454393d0a1238b01e573bae3e7e93a4d45a44404aa854bc81d16e69a1bc389ed556",
         "otaHeaderString": "Tuya:TS0201-bz",
         "modelId": "TS0201-bz",
         "manufacturerName": [
@@ -69,7 +69,7 @@
         "fileSize": 157218,
         "manufacturerCode": 4417,
         "imageType": 534,
-        "sha512": "b603edf407ed003ab4b7d77cb977305081f54ecf11f30c7e53a779ba7647d3e8eae86cf91ca1f4eab12e763c282ddda8a1b945c23d1906f330a266c1ddeb27ff",
+        "sha512": "0ec2eb3d8bdb35ad0a63f04c8824ae53d0976030df4c91b34f16233662720da52c6057037690e025b8773472c6a53e28f0526458e526451a4679fa438fb46c90",
         "otaHeaderString": "Tuya:TH03Z-bz",
         "modelId": "TH03Z-bz",
         "manufacturerName": [
