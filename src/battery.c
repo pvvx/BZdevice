@@ -15,7 +15,7 @@
 
 struct {
 	u32 summ;
-	u8 cnt;
+	u32 cnt;
 } bat_average;
 
 _BAT_SPEED_CODE_SEC_

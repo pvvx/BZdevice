@@ -129,12 +129,12 @@ void adc_channel_init(ADC_InputPchTypeDef p_ain) {
 	if(adc_vref_cfg2.vref == 0)
 		drv_calib_adc_verf();
 #endif
-#if 0 // gpio set in app_config.h ?
+#if 1 // gpio set in app_config.h ?
 	if(p_ain == SHL_ADC_VBAT) {
 		// Set missing pin on case TLSR8251F512ET24/TLSR8253F512ET32
-		gpio_set_output_en(GPIO_VBAT, 1);
-		gpio_set_input_en(GPIO_VBAT, 0);
+		//gpio_set_input_en(GPIO_VBAT, 0);
 		gpio_write(GPIO_VBAT, 1);
+		gpio_set_output_en(GPIO_VBAT, 1);
 	}
 #endif
 	adc_power_on_sar_adc(0);
@@ -166,7 +166,7 @@ u16 get_adc_mv(int flg) { // ADC_InputPchTypeDef
 	volatile unsigned int adc_dat_buf[ADC_BUF_COUNT];
 	u16 temp;
 	int i, j;
-	adc_power_on_sar_adc(1); // + 0.4 mA
+	adc_power_on_sar_adc(1); // Power + 0.4 mA
 	adc_reset_adc_module();
 	u32 t0 = clock_time();
 	u16 adc_sample[ADC_BUF_COUNT]; // = { 0 };
@@ -197,7 +197,7 @@ u16 get_adc_mv(int flg) { // ADC_InputPchTypeDef
 		}
 	}
 	dfifo_disable_dfifo2();
-	adc_power_on_sar_adc(0); // - 0.4 mA
+	adc_power_on_sar_adc(0); // Power - 0.4 mA
 	adc_average = (adc_sample[2] + adc_sample[3] + adc_sample[4]
 			+ adc_sample[5]);
 	if(flg)
@@ -211,7 +211,7 @@ u16 get_adc_mv(int flg) { // ADC_InputPchTypeDef
 #endif
 #else // USE_READ_ADC_CALIBRATION
 #if BOARD == BOARD_MJWSD05MMC
-	return ((adc_average) * 1686) >> 12; // adc_vref default: 1175 (mV)
+	return (adc_average * 1686) >> 12; // adc_vref default: 1175 (mV)
 #else
 	return (adc_average * ADC_CALIBRATION_VREF) >> 12; // adc_vref default: 1175 (mV)
 #endif
