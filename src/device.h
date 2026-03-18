@@ -37,7 +37,7 @@ typedef struct{
 	u32 keyPressedTime;
 	u32 readSensorTime; // read sensor timer (tik)
 	u32 measure_interval;
-	u16 reportupsec; // report add (sec)
+	u16 utc_sec;
 
 	u16 ledOnTime;
 	u16 ledOffTime;

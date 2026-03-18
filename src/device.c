@@ -7,7 +7,6 @@
 #include "zcl_include.h"
 #include "bdb.h"
 #include "ota.h"
-#include "device.h"
 #if ZBHCI_EN
 #include "zbhci.h"
 #endif
@@ -255,7 +254,7 @@ void read_sensor_and_save(void) {
     g_sensorAppCtx.readSensorTime = clock_time();
 	while(clock_time() - g_sensorAppCtx.secTimeTik >= CLOCK_16M_SYS_TIMER_CLK_1S) {
 		g_sensorAppCtx.secTimeTik += CLOCK_16M_SYS_TIMER_CLK_1S;
-		g_sensorAppCtx.reportupsec++; // + 1 sec
+		g_sensorAppCtx.utc_sec++; // + 1 sec
 	}
 }
 
@@ -324,7 +323,6 @@ void sensors_task(void) {
 
 void app_task(void)
 {
-	u16 rep_uptime_sec;
 ///	sensors_task(NULL);
 ///	task_keys();
 	if(bdb_isIdle()){
@@ -341,11 +339,7 @@ void app_task(void)
 			if(!g_sensorAppCtx.timerLedEvt)
 				light_off();
 #endif // USE_DISPLAY
-			rep_uptime_sec = g_sensorAppCtx.reportupsec;
-			if(rep_uptime_sec) {
-				g_sensorAppCtx.reportupsec = 0;
-				app_chk_report(rep_uptime_sec);
-			}
+			app_report_handler();
 		} else {
 #if	USE_DISPLAY
 #if BOARD == BOARD_MHO_C401N

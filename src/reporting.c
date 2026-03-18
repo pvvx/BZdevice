@@ -2,10 +2,50 @@
  * reporting.c
  * Created: pvvx
  */
+#include "device.h"
 #include "reporting.h"
 #include "utility.h"
 
 extern bool reportableChangeValueChk(u8 dataType, u8 *curValue, u8 *prevValue, u8 *reportableChange);
+
+app_wrk_report_t wrk_rpt;
+
+status_t app_forcedReport(u8 endpoint, u16 claster_id, u16 attr_id) {
+
+	status_t status = ZCL_STA_SUCCESS;
+
+    if (zb_isDeviceJoinedNwk()) {
+
+        epInfo_t dstEpInfo;
+        TL_SETSTRUCTCONTENT(dstEpInfo, 0);
+
+        dstEpInfo.profileId = HA_PROFILE_ID;
+        dstEpInfo.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+
+        zclAttrInfo_t *pAttrEntry = zcl_findAttribute(endpoint, claster_id, attr_id);
+
+        if (!pAttrEntry) {
+            //should not happen.
+            ZB_EXCEPTION_POST(SYS_EXCEPTTION_ZB_ZCL_ENTRY);
+            return ZCL_STA_FAILURE;
+        }
+#if 0 // def ZCL_MULTISTATE_INPUT
+        if (attr_id == ZCL_MULTISTATE_INPUT_ATTRID_PRESENT_VALUE) {
+            last_timeReportMsi = clock_time();
+            last_seqNum = ZCL_SEQ_NUM;
+            status = zcl_report(endpoint, &dstEpInfo, TRUE, ZCL_FRAME_SERVER_CLIENT_DIR, last_seqNum,
+                    MANUFACTURER_CODE_NONE, claster_id, pAttrEntry->id, pAttrEntry->type, pAttrEntry->data);
+            TL_ZB_TIMER_SCHEDULE(resetMsiTimerCb, (void*)((uint32_t)endpoint), TIMEOUT_750MS);
+        } else
+#endif
+        {
+        	status = zcl_sendReportCmd(endpoint, &dstEpInfo,  TRUE, ZCL_FRAME_SERVER_CLIENT_DIR,
+                    claster_id, pAttrEntry->id, pAttrEntry->type, pAttrEntry->data);
+        }
+        //sws_printf("forceReport: %04x:%04x %02x\n", claster_id, pAttrEntry->id, status);
+    }
+    return status;
+}
 
 /*********************************************************************
  * @fn      app_chk_report
@@ -87,7 +127,7 @@ status_t app_chk_report(u16 uptime_sec) {
 
 					if(status == ZCL_STA_INSUFFICIENT_SPACE) {
 
-						pEntry->maxIntCnt = 1; // repeat after 1 sec.
+						pEntry->maxIntCnt = 0; // repeat after
 
 					} else {
 
@@ -114,9 +154,20 @@ status_t app_chk_report(u16 uptime_sec) {
 									pAttrEntry->type,
 									pAttrEntry->data)
 				            		== ZCL_STA_INSUFFICIENT_SPACE) {
+
 				            	status = ZCL_STA_INSUFFICIENT_SPACE;
-				            	pEntry->maxIntCnt = 1; // repeat after 1 sec.
+
+				            	pEntry->maxIntCnt = 0; // repeat after
 							}
+/*
+				            sws_printf("checkReport: %04x:%04x %d,%d,%d:%d %02x\n",
+				            		pEntry->clusterID, pAttrEntry->id,
+									pEntry->minInterval,
+									pEntry->maxInterval,
+									pEntry->reportableChange[0],
+									pEntry->prevData[0],
+									status);
+*/
 						}
 			        }
 				}
@@ -127,6 +178,51 @@ status_t app_chk_report(u16 uptime_sec) {
 	}
 	return status;
 }
+
+/*********************************************************************
+ * @fn      app_report_handler
+ *
+ * @brief
+ *
+ * @param   None
+ *
+ * @return  None
+ */
+_CODE_ZCL_ void app_report_handler(void)
+{
+	u32 tt, tmp;
+/*	if (zb_isDeviceJoinedNwk()) {
+		if (wrk_rpt.extraSend) {
+			wrk_rpt.extraSend = 0;
+			if (app_chk_report(0) != ZCL_STA_SUCCESS) {
+				wrk_rpt.oldSysTick = clock_time();
+				wrk_rpt.cntRepeat = 3;
+			}
+		} else
+*/
+		if (wrk_rpt.cntRepeat
+				&& clock_time() - wrk_rpt.oldSysTick
+						> 250 * CLOCK_16M_SYS_TIMER_CLK_1MS) {
+			if (app_chk_report(0) != ZCL_STA_SUCCESS) {
+				wrk_rpt.oldSysTick = clock_time();
+				wrk_rpt.cntRepeat--;
+			} else {
+				wrk_rpt.cntRepeat = 0;
+			}
+		} else {
+			tt = g_sensorAppCtx.utc_sec;
+			tmp = tt - wrk_rpt.oldTimeSec;
+			wrk_rpt.oldTimeSec = tt;
+			if (tmp && tmp < 0x10000) {
+				if (app_chk_report((u16) tmp) != ZCL_STA_SUCCESS) {
+					wrk_rpt.oldSysTick = clock_time();
+					wrk_rpt.cntRepeat = 3;
+				}
+			}
+		}
+//	}
+}
+
 /*********************************************************************
  * @fn      app_set_thb_report
  *
