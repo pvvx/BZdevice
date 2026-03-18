@@ -66,15 +66,6 @@
     },
     {
         "fileVersion": 34156545,
-        "fileSize": 157394,
-        "manufacturerCode": 4417,
-        "imageType": 529,
-        "sha512": "613572f982c8d9704efb275acaac35ce6fa1b6d4f351fa2b1e8d2cfe2c394bcdb2661035fe666e737394999804e20532ba10708c511e2002ce52c6da4cf919d0",
-        "otaHeaderString": "OTA BZdevice",
-        "url": "https://github.com/pvvx/BZdevice/raw/refs/heads/master/bin_zb/1141-0211-02093001-z03mmc.zigbee"
-    },
-    {
-        "fileVersion": 34156545,
         "fileSize": 157362,
         "manufacturerCode": 4417,
         "imageType": 534,

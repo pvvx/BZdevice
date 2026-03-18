@@ -1,5 +1,7 @@
-@set SWVER=_v0208
-@del /Q .\bin
+@set SWVER=_v0209
+@del /Q .\bin\*.bin
+@del /Q .\bin\*.zigbee
+@del /Q .\build
 wsl make -s clean
 wsl make -s VERSION_BIN=%SWVER% PROJECT_NAME=Z03MMC POJECT_DEF="-DBOARD=BOARD_LYWSD03MMC" ZNAME="Xiaomi:LYWSD03MMC-bz"
 @if not exist "bin\Z03MMC%SWVER%.bin" goto :error

@@ -1,7 +1,9 @@
 @set TLSDK=D:\MCU\TelinkIoTStudio
 @set PATH=%TLSDK%\bin;%TLSDK%\opt\tc32\bin;%TLSDK%\mingw\bin;%TLSDK%\opt\tc32\tc32-elf\bin;%PATH%
-@set SWVER=_v0208
-@rem del /Q .\bin
+@set SWVER=_v0209
+@del /Q .\bin\*.bin
+@del /Q .\bin\*.zigbee
+@del /Q .\build
 make -s -j clean
 make -s -j VERSION_BIN=%SWVER% PROJECT_NAME=Z03MMC POJECT_DEF="-DBOARD=BOARD_LYWSD03MMC" ZNAME="Xiaomi:LYWSD03MMC-bz"
 @if not exist "bin\Z03MMC%SWVER%.bin" goto :error
