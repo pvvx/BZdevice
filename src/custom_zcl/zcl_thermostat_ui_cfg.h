@@ -23,6 +23,11 @@
 
 #define ZCL_THERMOSTAT_UI_CFG_ATTRID_MEASURE_INTERVAL	0x0107
 
+#define ZCL_THERMOSTAT_UI_CFG_ATTRID_TRIGGER_TRH_T		0x0110
+#define ZCL_THERMOSTAT_UI_CFG_ATTRID_TRIGGER_HST_T		0x0111
+#define ZCL_THERMOSTAT_UI_CFG_ATTRID_TRIGGER_TRH_H		0x0112
+#define ZCL_THERMOSTAT_UI_CFG_ATTRID_TRIGGER_HST_H		0x0113
+
 status_t zcl_thermostat_ui_cfg_register(u8 endpoint, u16 manuCode, u8 attrNum, const zclAttrInfo_t attrTbl[], cluster_forAppCb_t cb);
 
 #endif	/* ZCL_THERMOSTAT_UI_CFG_H */

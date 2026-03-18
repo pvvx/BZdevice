@@ -15,6 +15,7 @@
 #else
 #error "Define USE_SENSOR!"
 #endif
+#include "battery.h"
 
 #if USE_SENSOR_ID
 extern u32 sensor_id;
@@ -29,9 +30,6 @@ extern u32 sensor_id;
 #define FLG_MEASURE_CC_VBAT	0x10
 //
 
-
 void adc_channel_init(ADC_InputPchTypeDef p_ain); // in adc_drv.c
-u16 get_adc_mv(void); // in adc_drv.c
-void battery_detect(void);
 
 #endif /* _SENSORS_H_ */

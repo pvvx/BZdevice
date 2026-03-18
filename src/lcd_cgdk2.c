@@ -123,6 +123,16 @@ const u8 bottom_right[DEF_CGDK22_SUMBOL_SIGMENTS*2] = {9, 3, 17, 7, 10, 7, 10, 6
 */
 const u8 lcd_init_cmd[] = {0xea,0xf0, 0xc0, 0xbc}; // sleep all 9.4 uA
 
+//const u8 lcd_init_cmd[] = {0xea,0xbe,0xf0,0xfc}; // sleep all 16.6 uA
+/* LCD controller off
+ * All chips sleep power 2..3 uA */
+const u8 lcd_off_cmd[]	=	{ // sleep all 3.0 uA
+		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
+		0xbc, // Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
+		0xd0  // Mode Set (MODE SET): Display disable, 1/3 Bias, power saving
+};
+
+
 /*
 static void lcd_send_i2c_buf(u8 * dataBuf, uint32_t dataLen) {
 	if ((reg_clk_en0 & FLD_CLK0_I2C_EN)==0)
@@ -399,6 +409,10 @@ void show_blink_screen(void) {
 	update_lcd();
 	lcd_blink = 0xf2;
 	lcd_send_i2c_buf(&lcd_blink, 1);
+}
+
+void display_off(void) {
+	send_i2c_bytes(CGDK2_I2C_ADDR << 1, (u8 *) lcd_off_cmd, sizeof(lcd_off_cmd));
 }
 
 #endif // BOARD == BOARD_CGDK2

@@ -65,7 +65,7 @@ void init_sensor(void) {
 __attribute__((optimize("-Os"))) int read_sensor(void) {
 	u32 _temp, i = 3;
 	u8 reg_data[4];
-	battery_detect();
+	battery_detect(0);
 	if (sensor_i2c_addr != 0) {
 		while(i--) {
 			if (read_i2c_bytes(sensor_i2c_addr, reg_data, sizeof(reg_data)) == 0) {

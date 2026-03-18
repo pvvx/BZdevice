@@ -144,7 +144,7 @@ int read_sensor(void) {
 	int re = 0;
 	if (sensor_i2c_addr) {
 		re = read_sensor_cb();
-		battery_detect();
+		battery_detect(0);
 	} else
 		init_sensor();
 	return re;

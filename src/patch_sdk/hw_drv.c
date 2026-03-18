@@ -122,7 +122,7 @@ startup_state_e drv_platform_init(void)
 		extern void drv_calib_adc_verf(void);
 		drv_calib_adc_verf();
 #endif
-		battery_detect();
+		battery_detect(1);
 		random_generator_init();
 #if PM_ENABLE
 		/// PM_CLOCK_INIT(); ///

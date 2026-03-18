@@ -190,8 +190,8 @@ const zclAttrInfo_t identify_attrTbl[] =
 /* power */
 zcl_powerAttr_t g_zcl_powerAttrs =
 {
-    .batteryVoltage    = 30, //in 100 mV units, 0xff - unknown
-    .batteryPercentage = 200 //in 0,5% units, 0xff - unknown
+    .batteryVoltage    = 0xff, //in 100 mV units, 0xff - unknown
+    .batteryPercentage = 0xff //in 0,5% units, 0xff - unknown
 };
 
 const zclAttrInfo_t powerCfg_attrTbl[] =
@@ -282,6 +282,7 @@ zcl_thermostatUICfgAttr_t g_zcl_thermostatUICfgAttrs;
 const zcl_thermostatUICfgAttr_t g_zcl_thermostatUICfgDefault = {
 		.temp_offset = 0,
 		.humi_offset = 0,
+		.measure_interval = READ_SENSOR_TIMER_SEC,
 #if	USE_DISPLAY
 		.TemperatureDisplayMode = 0,
 #if SHOW_SMILEY
@@ -334,7 +335,7 @@ zcl_pollCtrlAttr_t g_zcl_pollCtrlAttrs =
 	.fastPollTimeout		= READ_SENSOR_TIMER_SEC*4,  // 10 sec
 	.chkInIntervalMin		= 0, // 2*READ_SENSOR_TIMER_SEC*4, // 20 sec
 	.longPollIntervalMin	= 2*READ_SENSOR_TIMER_SEC*4, // 20 sec
-	.fastPollTimeoutMax		= 60*4 // 0
+	.fastPollTimeoutMax		= READ_SENSOR_TIMER_SEC*4 // 10 sec
 };
 
 const zclAttrInfo_t pollCtrl_attrTbl[] =

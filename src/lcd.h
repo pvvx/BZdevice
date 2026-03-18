@@ -23,6 +23,8 @@ void show_connected_symbol(bool state);
 void show_smiley(u8 state);
 void show_ble_symbol(bool state);
 void show_blink_screen(void);
+void display_off(void);
+
 
 #ifdef USE_EPD
 int task_lcd(void);

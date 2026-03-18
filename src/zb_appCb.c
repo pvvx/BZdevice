@@ -308,11 +308,11 @@ void sensorDevice_leaveCnfHandler(nlme_leave_cnf_t *pLeaveCnf)
 {
     if(pLeaveCnf->status == SUCCESS){
 #if REJOIN_FAILURE_TIMER
-		if(g_sensorAppCtx.timerRejoinBackoffEvt){
-			TL_ZB_TIMER_CANCEL(&g_sensorAppCtx.timerRejoinBackoffEvt);
-		}
+//		if(g_sensorAppCtx.timerRejoinBackoffEvt){
+//			TL_ZB_TIMER_CANCEL(&g_sensorAppCtx.timerRejoinBackoffEvt);
+//		}
 #endif
-    	//zb_resetDevice();
+    	SYSTEM_RESET();
     }
 }
 

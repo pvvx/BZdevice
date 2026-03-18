@@ -191,28 +191,16 @@ void stack_init(void)
 
 #if SHOW_SMILEY
 
-#ifdef ZCL_THERMOSTAT_UI_CFG
-scomfort_t cmf;
-#else
-scomfort_t cmf = {
-		2000, 2500,
-		4000, 6000
-};
-#endif
-
-void set_comfort(void) {
-	cmf.t[0] = g_zcl_thermostatUICfgAttrs.temp_comfort_min *100;
-	cmf.t[1] = g_zcl_thermostatUICfgAttrs.temp_comfort_max *100;
-	cmf.h[0] = g_zcl_thermostatUICfgAttrs.humi_comfort_min *100;
-	cmf.h[1] = g_zcl_thermostatUICfgAttrs.humi_comfort_max *100;
-}
-
 u8 is_comfort(s16 t, u16 h) {
 	u8 ret = 0;
-	if (t >= cmf.t[0] && t <= cmf.t[1] && h >= cmf.h[0] && h <= cmf.h[1])
+	if (t >= g_zcl_thermostatUICfgAttrs.temp_comfort_min
+		&& t <= g_zcl_thermostatUICfgAttrs.temp_comfort_max
+		&& h >= g_zcl_thermostatUICfgAttrs.humi_comfort_min
+		&& h <= g_zcl_thermostatUICfgAttrs.humi_comfort_max)
 		ret = 1;
 	return ret;
 }
+
 #endif
 
 void read_sensor_and_save(void) {
@@ -354,7 +342,7 @@ void app_task(void)
 				light_off();
 #endif // USE_DISPLAY
 			rep_uptime_sec = g_sensorAppCtx.reportupsec;
-			if(rep_uptime_sec > READ_SENSOR_TIMER_SEC - 1) {
+			if(rep_uptime_sec) {
 				g_sensorAppCtx.reportupsec = 0;
 				app_chk_report(rep_uptime_sec);
 			}

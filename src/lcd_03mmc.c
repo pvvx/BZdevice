@@ -98,6 +98,13 @@ const u8 lcd_init_b19[]	=	{
 		0x00,0x00
 };
 
+/* LCD B1.9 controller off
+ * All chips sleep power 2..3 uA */
+const u8 lcd_off_b19[]	=	{ // sleep all 3.0 uA
+		0xea, // Set IC Operation(ICSET): Software Reset, Internal oscillator circuit
+		0xbc, // Display control (DISCTL): Power save mode 3, FRAME flip, Power save mode 1
+		0xd0  // Mode Set (MODE SET): Display disable, 1/3 Bias, power saving
+};
 
 const u8 display_numbers[16] = {0xF5,0x05,0xD3,0x97,0x27,0xb6,0xf6,0x15,0xf7,0xb7,0x77,0xe6,0xf0,0xc7,0xf2,0x72};
 
@@ -355,5 +362,10 @@ void show_blink_screen(void) {
 		lcd_send_i2c_buf(&lcd_blink, 1);
 	}
 }
+
+void display_off(void) {
+	send_i2c_bytes(B19_I2C_ADDR << 1, (u8 *) lcd_off_b19, sizeof(lcd_off_b19));
+}
+
 
 #endif // BOARD == BOARD_LYWSD03MMC

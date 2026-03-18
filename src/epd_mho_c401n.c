@@ -399,4 +399,6 @@ void show_clock(void) {
 }
 #endif // USE_CLOCK
 
+void display_off(void) {
+}
 #endif // BOARD == BOARD_MHO_C401N
